@@ -12,17 +12,7 @@ public class AstBuilder extends ToyCBaseVisitor<Node> {
     @Override
     public Node visitCompUnit(ToyCParser.CompUnitContext ctx) {
         List<Node> elements = new ArrayList<>();
-        if (ctx.decl() != null) {
-            for (ToyCParser.DeclContext declCtx : ctx.decl()) {
-                elements.add(visit(declCtx));
-            }
-        }
-        if (ctx.funcDef() != null) {
-            for (ToyCParser.FuncDefContext funcCtx : ctx.funcDef()) {
-                elements.add(visit(funcCtx));
-            }
-        }
-        elements.clear();
+        // Iterate through children to preserve the original source code order
         for (int i = 0; i < ctx.getChildCount(); i++) {
             if (ctx.getChild(i) instanceof ToyCParser.DeclContext || ctx.getChild(i) instanceof ToyCParser.FuncDefContext) {
                 elements.add(visit(ctx.getChild(i)));
