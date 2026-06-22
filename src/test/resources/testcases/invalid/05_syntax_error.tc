@@ -1,0 +1,5 @@
+// Test syntax error
+int main() {
+    int a = ; // Missing expression
+    return 0;
+}

@@ -55,8 +55,8 @@ ID : [_A-Za-z][_A-Za-z0-9]* ;
 // Wait! In the requirements: `NUMBER` -> `-?(0|[1-9][0-9]*)`
 NUMBER : '-'? ('0' | [1-9][0-9]*) ;
 
-// Whitespace
-WS : [ \t\r\n]+ -> skip ;
+// Whitespace and BOM
+WS : [ \t\r\n\uFEFF]+ -> skip ;
 
 // Comments
 LINE_COMMENT : '//' ~[\r\n]* -> skip ;

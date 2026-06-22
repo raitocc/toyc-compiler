@@ -1,0 +1,6 @@
+// Test assign to const
+const int a = 5;
+int main() {
+    a = 10; // Should fail
+    return a;
+}

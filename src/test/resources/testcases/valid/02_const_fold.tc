@@ -1,0 +1,6 @@
+// Test constant folding
+const int a = 3;
+const int b = a * 2; // 6
+int main() {
+    return a + b; // 9
+}

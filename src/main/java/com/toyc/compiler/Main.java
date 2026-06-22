@@ -7,12 +7,10 @@ import com.toyc.compiler.ir.IRBuilder;
 import com.toyc.compiler.optimize.Optimizer;
 import com.toyc.compiler.backend.RiscvCodeGen;
 import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import toyc.ToyCLexer;
 import toyc.ToyCParser;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -25,35 +23,44 @@ public class Main {
             }
         }
 
-        // 1. Read from standard input
-        CharStream input = CharStreams.fromStream(System.in);
-        
-        // 2. Lexical and Syntax analysis
-        ToyCLexer lexer = new ToyCLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        ToyCParser parser = new ToyCParser(tokens);
-        ParseTree tree = parser.compUnit();
-        
-        // 3. Build AST
-        AstBuilder builder = new AstBuilder();
-        AST.Node ast = builder.visit(tree);
-        
-        // 4. Semantic Analysis & Constant Folding
-        SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
-        AST.Node semanticAst = semanticAnalyzer.analyze(ast);
-        
-        // 5. IR Generation (Three-Address Code)
-        IRBuilder irBuilder = new IRBuilder();
-        List<TAC> instructions = irBuilder.build(semanticAst);
-        
-        // 6. Optimization (if -opt is passed)
-        if (optimize) {
-            Optimizer optimizer = new Optimizer();
-            instructions = optimizer.optimize(instructions);
+        try {
+            CharStream input = CharStreams.fromStream(System.in);
+            
+            ToyCLexer lexer = new ToyCLexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            ToyCParser parser = new ToyCParser(tokens);
+            
+            // Add custom error listener
+            parser.removeErrorListeners();
+            parser.addErrorListener(new BaseErrorListener() {
+                @Override
+                public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
+                    throw new RuntimeException("Syntax Error at line " + line + ":" + charPositionInLine + " - " + msg);
+                }
+            });
+            
+            ParseTree tree = parser.compUnit();
+            
+            AstBuilder builder = new AstBuilder();
+            AST.Node ast = builder.visit(tree);
+            
+            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
+            AST.Node semanticAst = semanticAnalyzer.analyze(ast);
+            
+            IRBuilder irBuilder = new IRBuilder();
+            List<TAC> instructions = irBuilder.build(semanticAst);
+            
+            if (optimize) {
+                Optimizer optimizer = new Optimizer();
+                instructions = optimizer.optimize(instructions);
+            }
+            
+            RiscvCodeGen codeGen = new RiscvCodeGen(System.out, instructions);
+            codeGen.generate();
+            
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
         }
-        
-        // 7. Backend: RISC-V Code Generation
-        RiscvCodeGen codeGen = new RiscvCodeGen(System.out, instructions);
-        codeGen.generate();
     }
 }

@@ -1,0 +1,4 @@
+// Test undefined variable
+int main() {
+    return b; // Should fail
+}

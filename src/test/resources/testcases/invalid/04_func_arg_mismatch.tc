@@ -1,0 +1,7 @@
+// Test function argument mismatch
+int add(int a, int b) {
+    return a + b;
+}
+int main() {
+    return add(1); // Should fail (expects 2 args)
+}

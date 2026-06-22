@@ -1,0 +1,7 @@
+// Test type mismatch or void return
+void doSomething() {
+    return 1; // Should fail (void func can't return value)
+}
+int main() {
+    return 0;
+}

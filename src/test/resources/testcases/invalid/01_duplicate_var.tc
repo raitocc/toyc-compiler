@@ -1,0 +1,6 @@
+// Test duplicate variable
+int main() {
+    int a = 1;
+    int a = 2; // Should fail
+    return a;
+}
