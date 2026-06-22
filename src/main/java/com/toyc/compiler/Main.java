@@ -1,17 +1,34 @@
 package com.toyc.compiler;
 
-//TIP 要<b>运行</b>代码，请按 <shortcut actionId="Run"/> 或
-// 点击装订区域中的 <icon src="AllIcons.Actions.Execute"/> 图标。
-public class Main {
-    public static void main(String[] args) {
-        //TIP 当文本光标位于高亮显示的文本处时按 <shortcut actionId="ShowIntentionActions"/>
-        // 查看 IntelliJ IDEA 建议如何修正。
-        System.out.printf("Hello and welcome!");
+import com.toyc.compiler.ast.ASTNode;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+import toyc.ToyCLexer;
+import toyc.ToyCParser;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP 按 <shortcut actionId="Debug"/> 开始调试代码。我们已经设置了一个 <icon src="AllIcons.Debugger.Db_set_breakpoint"/> 断点
-            // 但您始终可以通过按 <shortcut actionId="ToggleLineBreakpoint"/> 添加更多断点。
-            System.out.println("i = " + i);
-        }
+import java.io.IOException;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        // Read from standard input as required by the task
+        CharStream input = CharStreams.fromStream(System.in);
+        
+        // Lexical analysis
+        ToyCLexer lexer = new ToyCLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        
+        // Syntax analysis
+        ToyCParser parser = new ToyCParser(tokens);
+        ParseTree tree = parser.compUnit();
+        
+        // Build AST
+        AstBuilder builder = new AstBuilder();
+        ASTNode ast = builder.visit(tree);
+        
+        // Generate Code to standard output
+        CodeGen codeGen = new CodeGen(System.out);
+        codeGen.generate(ast);
     }
 }
