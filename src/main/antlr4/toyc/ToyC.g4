@@ -11,16 +11,16 @@ constDecl : 'const' 'int' ID '=' expr ';' ;
 
 varDecl : 'int' ID '=' expr ';' ;
 
-stmt : block
-     | ';'
-     | expr ';'
-     | ID '=' expr ';'
-     | decl
-     | 'if' '(' expr ')' stmt ('else' stmt)?
-     | 'while' '(' expr ')' stmt
-     | 'break' ';'
-     | 'continue' ';'
-     | 'return' expr? ';'
+stmt : block                                           # StmtBlock
+     | ';'                                             # StmtEmpty
+     | expr ';'                                        # StmtExpr
+     | ID '=' expr ';'                                 # StmtAssign
+     | decl                                            # StmtDecl
+     | 'if' '(' expr ')' stmt ('else' stmt)?           # StmtIf
+     | 'while' '(' expr ')' stmt                       # StmtWhile
+     | 'break' ';'                                     # StmtBreak
+     | 'continue' ';'                                  # StmtContinue
+     | 'return' expr? ';'                              # StmtReturn
      ;
 
 block : '{' stmt* '}' ;

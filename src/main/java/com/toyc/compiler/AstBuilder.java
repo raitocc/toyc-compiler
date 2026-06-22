@@ -46,46 +46,61 @@ public class AstBuilder extends ToyCBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitStmt(ToyCParser.StmtContext ctx) {
-        if (ctx.block() != null) {
-            return visit(ctx.block());
-        }
-        if (ctx.decl() != null) {
-            return visit(ctx.decl());
-        }
-        if (ctx.getText().equals(";")) {
-            return new EmptyStmt();
-        }
-        if (ctx.getChild(0).getText().equals("if")) {
-            Expr cond = (Expr) visit(ctx.expr());
-            Stmt thenStmt = (Stmt) visit(ctx.stmt(0));
-            Stmt elseStmt = ctx.stmt().size() > 1 ? (Stmt) visit(ctx.stmt(1)) : null;
-            return new IfStmt(cond, thenStmt, elseStmt);
-        }
-        if (ctx.getChild(0).getText().equals("while")) {
-            Expr cond = (Expr) visit(ctx.expr());
-            Stmt body = (Stmt) visit(ctx.stmt(0));
-            return new WhileStmt(cond, body);
-        }
-        if (ctx.getChild(0).getText().equals("break")) {
-            return new BreakStmt();
-        }
-        if (ctx.getChild(0).getText().equals("continue")) {
-            return new ContinueStmt();
-        }
-        if (ctx.getChild(0).getText().equals("return")) {
-            Expr expr = ctx.expr() != null ? (Expr) visit(ctx.expr()) : null;
-            return new ReturnStmt(expr);
-        }
-        if (ctx.ID() != null && ctx.getChildCount() > 1 && ctx.getChild(1).getText().equals("=")) {
-            String name = ctx.ID().getText();
-            Expr expr = (Expr) visit(ctx.expr());
-            return new AssignStmt(name, expr);
-        }
-        if (ctx.expr() != null) {
-            return new ExprStmt((Expr) visit(ctx.expr()));
-        }
-        throw new RuntimeException("Unknown statement: " + ctx.getText());
+    public Node visitStmtBlock(ToyCParser.StmtBlockContext ctx) {
+        return visit(ctx.block());
+    }
+
+    @Override
+    public Node visitStmtEmpty(ToyCParser.StmtEmptyContext ctx) {
+        return new EmptyStmt();
+    }
+
+    @Override
+    public Node visitStmtExpr(ToyCParser.StmtExprContext ctx) {
+        return new ExprStmt((Expr) visit(ctx.expr()));
+    }
+
+    @Override
+    public Node visitStmtAssign(ToyCParser.StmtAssignContext ctx) {
+        String name = ctx.ID().getText();
+        Expr expr = (Expr) visit(ctx.expr());
+        return new AssignStmt(name, expr);
+    }
+
+    @Override
+    public Node visitStmtDecl(ToyCParser.StmtDeclContext ctx) {
+        return visit(ctx.decl());
+    }
+
+    @Override
+    public Node visitStmtIf(ToyCParser.StmtIfContext ctx) {
+        Expr cond = (Expr) visit(ctx.expr());
+        Stmt thenStmt = (Stmt) visit(ctx.stmt(0));
+        Stmt elseStmt = ctx.stmt().size() > 1 ? (Stmt) visit(ctx.stmt(1)) : null;
+        return new IfStmt(cond, thenStmt, elseStmt);
+    }
+
+    @Override
+    public Node visitStmtWhile(ToyCParser.StmtWhileContext ctx) {
+        Expr cond = (Expr) visit(ctx.expr());
+        Stmt body = (Stmt) visit(ctx.stmt());
+        return new WhileStmt(cond, body);
+    }
+
+    @Override
+    public Node visitStmtBreak(ToyCParser.StmtBreakContext ctx) {
+        return new BreakStmt();
+    }
+
+    @Override
+    public Node visitStmtContinue(ToyCParser.StmtContinueContext ctx) {
+        return new ContinueStmt();
+    }
+
+    @Override
+    public Node visitStmtReturn(ToyCParser.StmtReturnContext ctx) {
+        Expr expr = ctx.expr() != null ? (Expr) visit(ctx.expr()) : null;
+        return new ReturnStmt(expr);
     }
 
     @Override
