@@ -1,0 +1,22 @@
+int counter = 0;
+
+int increment() {
+    counter = counter + 1;
+    return 1;
+}
+
+int main() {
+    int a = 0;
+    
+    // counter shouldn't increment because of short-circuit on &&
+    if (a && increment()) {
+        a = 1;
+    }
+    
+    // counter should increment because a == 0
+    if (a || increment()) {
+        a = 2;
+    }
+    
+    return counter; // should be 1
+}
