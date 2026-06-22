@@ -53,7 +53,7 @@ public class RiscvCodeGen {
                 // Pre-scan variables for stack allocation
                 stackOffsets.clear();
                 currentParams.clear();
-                int varCount = 0;
+                int varCount = 2; // Reserve 0(s0) to -8(s0) for ra and old s0
                 for (int j = i + 1; j < instructions.size(); j++) {
                     TAC inner = instructions.get(j);
                     if (inner.op == TAC.Op.FUNC_END) break;
