@@ -27,6 +27,8 @@ public class AST {
     }
 
     public static abstract class Node {
+        public int line = -1;
+        public int column = -1;
         public abstract <T> T accept(Visitor<T> visitor);
     }
 

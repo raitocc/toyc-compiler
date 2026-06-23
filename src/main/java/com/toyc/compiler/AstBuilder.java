@@ -10,6 +10,19 @@ import java.util.List;
 
 public class AstBuilder extends ToyCBaseVisitor<Node> {
 
+    @Override
+    public Node visit(ParseTree tree) {
+        if (tree == null) return null;
+        Node node = super.visit(tree);
+        if (node != null && tree instanceof org.antlr.v4.runtime.ParserRuleContext ctx) {
+            if (node.line == -1) {
+                node.line = ctx.getStart().getLine();
+                node.column = ctx.getStart().getCharPositionInLine();
+            }
+        }
+        return node;
+    }
+
     /**
      * {@code compUnit : (decl | funcDef)+ EOF ;}
      * @see CompUnit

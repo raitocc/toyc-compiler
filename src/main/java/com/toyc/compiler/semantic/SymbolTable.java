@@ -71,6 +71,11 @@ public class SymbolTable {
         return scopes.size() == 1;
     }
 
+    public boolean hasInCurrentScope(String name) {
+        Map<String, Symbol> currentScope = scopes.peek();
+        return currentScope != null && currentScope.containsKey(name);
+    }
+
     public void define(String name, Symbol sym) {
         Map<String, Symbol> currentScope = scopes.peek();
         if (currentScope == null) {
