@@ -1,0 +1,9 @@
+int main() {
+    int x = 5;
+
+    if x > 0 { // 错误：if 后面缺少 '(' 和 ')'
+        return 1;
+    }
+
+    return 0;
+}

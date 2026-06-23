@@ -1,0 +1,2 @@
+int main()
+    return 0; // 错误：函数体必须是用 {} 包裹的 Block，不能直接写单条 Stmt
