@@ -140,33 +140,73 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
 
     @Override
     public Void visit(BreakStmt node) {
-        // TODO: 检查 loopDepth，确认其在循环中，否则报错
+        if (loopDepth == 0) {
+            throw new RuntimeException("Semantic Error: 'break' statement outside of loop");
+        }
         return null;
     }
 
     @Override
     public Void visit(ContinueStmt node) {
-        // TODO: 检查 loopDepth，确认其在循环中，否则报错
+        if (loopDepth == 0) {
+            throw new RuntimeException("Semantic Error: 'continue' statement outside of loop");
+        }
         return null;
     }
 
     @Override
     public Void visit(ReturnStmt node) {
-        // TODO: 1. 校验返回值匹配关系 (对比 currentFuncReturnType)
-        // TODO:    - 若函数是 void，但 return 带表达式，报错
-        // TODO:    - 若函数是 int，但 return 不带表达式，报错
-        // TODO: 2. 若带表达式，递归检查 node.expr，且返回值表达式不能为 void
+        if (node.expr != null) {
+            // 1. 如果有返回表达式，但当前函数返回类型是 void，报错
+            if (currentFuncReturnType != null && currentFuncReturnType.equals("void")) {
+                throw new RuntimeException("Semantic Error: Void function cannot return a value");
+            }
+            // 2. 递归检查表达式自身合法性
+            node.expr.accept(this);
+            // 3. 返回表达式的推导类型不能是 void
+            if (isVoidExpression(node.expr)) {
+                throw new RuntimeException("Semantic Error: Return expression has no return value");
+            }
+        } else {
+            // 4. 如果没有返回表达式，但当前函数要求返回 int，报错
+            if (currentFuncReturnType != null && currentFuncReturnType.equals("int")) {
+                throw new RuntimeException("Semantic Error: Function returning int must return a value");
+            }
+        }
         return null;
     }
 
     @Override
     public Void visit(FuncDef node) {
-        // TODO: 1. 检查重名冲突，无冲突则将该函数及其签名定义在全局符号表中
-        // TODO: 2. 暂存原有的 currentFuncReturnType，将其设为 node.returnType
-        // TODO: 3. 进入函数作用域，定义形参
-        // TODO: 4. 递归检查其 body 块
-        // TODO: 5. 退出作用域，恢复先前的 currentFuncReturnType 状态
-        // TODO: 6. 如果函数返回 int，检查其所有可能执行路径是否都确保 return 了一个值 (checkAllPathsReturn(node.body))
+        // 1. 检查重名冲突，无冲突则将该函数及其签名定义在全局符号表中
+        SymbolTable.Symbol funcSym = new SymbolTable.Symbol(node.name, node.returnType, node.params.size());
+        symTable.define(node.name, funcSym);
+
+        // 2. 将当前函数的返回类型设置为该函数的返回类型
+        currentFuncReturnType = node.returnType;
+
+        // 3. 进入函数局部作用域
+        symTable.enterScope();
+
+        // 4. 将形参定义在局部作用域符号表中
+        for (Param param : node.params) {
+            SymbolTable.Symbol paramSym = new SymbolTable.Symbol(param.name);
+            symTable.define(param.name, paramSym);
+        }
+
+        // 5. 递归检查其 body 块
+        node.body.accept(this);
+
+        // 6. 退出作用域，恢复全局的 currentFuncReturnType 状态为 null
+        symTable.exitScope();
+        currentFuncReturnType = null;
+
+        // 7. 如果函数返回 int，检查其所有可能执行路径是否都确保 return 了一个值
+        if (node.returnType.equals("int")) {
+            if (!checkAllPathsReturn(node.body)) {
+                throw new RuntimeException("Semantic Error: Function '" + node.name + "' returning int must return a value on all execution paths");
+            }
+        }
         return null;
     }
 
@@ -283,7 +323,6 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
      * 判定某个表达式的值是否为 void
      */
     private boolean isVoidExpression(Expr expr) {
-        // TODO: 仅当表达式是一个 CallExpr，且其目标函数的返回类型为 "void" 时，表达式才是 void。其他一律为 int。
         if (expr instanceof CallExpr callExpr) {
             SymbolTable.Symbol func = symTable.lookup(callExpr.funcName);
             return func != null && func.returnType != null && func.returnType.equals("void");
@@ -295,7 +334,27 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
      * 路径返回值分析（控制流判定）
      */
     private boolean checkAllPathsReturn(Stmt stmt) {
-        // TODO: 递归分析 Stmt (BlockStmt, IfStmt, ReturnStmt) 是否保证最终一定有返回值。
-        return false;
+        switch (stmt) {
+            case ReturnStmt ignored -> {
+                return true;
+            }
+            case BlockStmt block -> {
+                for (Stmt s : block.stmts) {
+                    if (checkAllPathsReturn(s)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            case IfStmt ifStmt -> {
+                if (ifStmt.elseStmt == null) {
+                    return false;
+                }
+                return checkAllPathsReturn(ifStmt.thenStmt) && checkAllPathsReturn(ifStmt.elseStmt);
+            }
+            case null, default -> {
+                return false;
+            }
+        }
     }
 }
