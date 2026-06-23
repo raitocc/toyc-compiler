@@ -1,6 +1,8 @@
 package com.toyc.compiler;
 
 import com.toyc.compiler.ast.AST;
+import com.toyc.compiler.ast.AstPrinter;
+import com.toyc.compiler.semantic.SemanticAnalyzer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -30,6 +32,12 @@ public class Main {
             
             AstBuilder builder = new AstBuilder();
             AST.Node ast = builder.visit(tree);
+            
+            SemanticAnalyzer analyzer = new SemanticAnalyzer();
+            analyzer.analyze(ast);
+            
+            AstPrinter printer = new AstPrinter();
+            System.out.print(ast.accept(printer));
             
         } catch (Exception e) {
             System.err.println(e.getMessage());
