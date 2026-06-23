@@ -104,7 +104,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
         if (leftSym.isFunc) {
             throw new RuntimeException("Semantic Error: Cannot assign to function '" + node.name + "'");
         }
-        if (isVoidExpression(node.expr)){
+        if (isVoidExpression(node.expr)) {
             throw new RuntimeException("Semantic Error: Assignment right-hand side expression has no return value");
         }
         return null;
@@ -222,30 +222,54 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
 
     @Override
     public Void visit(IdExpr node) {
-        // TODO: 1. 查找变量，未定义报错
-        // TODO: 2. 检查是否试图把函数名当成值来使用 (查出的符号如果是函数，且当前节点没有作为 CallExpr 被调用，报错)
+        SymbolTable.Symbol symbol = symTable.resolve(node.name);
+        if (symbol.isFunc) {
+            throw new RuntimeException("Semantic Error: Function '" + node.name + "' cannot be used as a value");
+        }
         return null;
     }
 
     @Override
     public Void visit(CallExpr node) {
-        // TODO: 1. 查找被调用的函数名是否存在，不存在报错
-        // TODO: 2. 检查传入参数个数是否匹配
-        // TODO: 3. 递归检查每个实参表达式，且实参表达式均不能为 void
+        SymbolTable.Symbol symbol = symTable.resolve(node.funcName);
+        if (!symbol.isFunc) {
+            throw new RuntimeException("Semantic Error: Identifier '" + node.funcName + "' is not a function");
+        }
+        int argN = node.args.size();
+        if (argN != symbol.paramCount) {
+            throw new RuntimeException("Semantic Error: Expected " + symbol.paramCount + " arguments, but got " + argN);
+        }
+        for (Expr expr : node.args) {
+            if (isVoidExpression(expr)) {
+                throw new RuntimeException("Semantic Error: Argument cannot be of type 'void'");
+            }
+            expr.accept(this);
+        }
         return null;
     }
 
     @Override
     public Void visit(UnaryExpr node) {
-        // TODO: 1. 递归检查操作数 expr
-        // TODO: 2. 检查操作数类型不能为 void
+        Expr expr = node.expr;
+        expr.accept(this);
+        if (isVoidExpression(expr)) {
+            throw new RuntimeException("Semantic Error: Operator '" + node.op + "' cannot be applied to 'void'");
+        }
         return null;
     }
 
     @Override
     public Void visit(BinaryExpr node) {
-        // TODO: 1. 递归检查 left 和 right
-        // TODO: 2. 检查操作数类型均不能为 void
+        Expr left = node.left;
+        Expr right = node.right;
+        left.accept(this);
+        right.accept(this);
+        if (isVoidExpression(left)){
+            throw new RuntimeException("Semantic Error: The left operand of '" + node.op + "' cannot be 'void'");
+        }
+        if (isVoidExpression(right)){
+            throw new RuntimeException("Semantic Error: The right operand of '" + node.op + "' cannot be 'void'");
+        }
         return null;
     }
 
