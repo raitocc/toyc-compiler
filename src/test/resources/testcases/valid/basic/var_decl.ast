@@ -1,0 +1,16 @@
+CompUnit
+  VarDecl (name: a)
+    NumberExpr (value: 1)
+  VarDecl (name: b)
+    NumberExpr (value: 2)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: c)
+        BinaryExpr (op: +)
+          IdExpr (name: a)
+          IdExpr (name: b)
+      ReturnStmt
+        IdExpr (name: c)

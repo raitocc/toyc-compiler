@@ -1,0 +1,23 @@
+CompUnit
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: a)
+        NumberExpr (value: 10)
+      IfStmt
+        cond:
+        BinaryExpr (op: >)
+          IdExpr (name: a)
+          NumberExpr (value: 5)
+        then:
+        BlockStmt
+          AssignStmt (name: a)
+            NumberExpr (value: 2)
+        else:
+        BlockStmt
+          AssignStmt (name: a)
+            NumberExpr (value: 1)
+      ReturnStmt
+        IdExpr (name: a)

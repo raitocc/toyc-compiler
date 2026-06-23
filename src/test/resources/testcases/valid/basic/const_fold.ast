@@ -1,0 +1,16 @@
+CompUnit
+  ConstDecl (name: a)
+    NumberExpr (value: 3)
+  ConstDecl (name: b)
+    BinaryExpr (op: *)
+      IdExpr (name: a)
+      NumberExpr (value: 2)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      ReturnStmt
+        BinaryExpr (op: +)
+          IdExpr (name: a)
+          IdExpr (name: b)

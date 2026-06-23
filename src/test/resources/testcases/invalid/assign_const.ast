@@ -1,0 +1,12 @@
+CompUnit
+  ConstDecl (name: a)
+    NumberExpr (value: 5)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      AssignStmt (name: a)
+        NumberExpr (value: 10)
+      ReturnStmt
+        IdExpr (name: a)

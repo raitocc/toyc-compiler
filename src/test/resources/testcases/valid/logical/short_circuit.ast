@@ -1,0 +1,45 @@
+CompUnit
+  VarDecl (name: counter)
+    NumberExpr (value: 0)
+  FuncDef (returnType: int, name: increment)
+    params:
+  []
+    body:
+    BlockStmt
+      AssignStmt (name: counter)
+        BinaryExpr (op: +)
+          IdExpr (name: counter)
+          NumberExpr (value: 1)
+      ReturnStmt
+        NumberExpr (value: 1)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: a)
+        NumberExpr (value: 0)
+      IfStmt
+        cond:
+        BinaryExpr (op: &&)
+          IdExpr (name: a)
+          CallExpr (funcName: increment)
+            args:
+          []
+        then:
+        BlockStmt
+          AssignStmt (name: a)
+            NumberExpr (value: 1)
+      IfStmt
+        cond:
+        BinaryExpr (op: ||)
+          IdExpr (name: a)
+          CallExpr (funcName: increment)
+            args:
+          []
+        then:
+        BlockStmt
+          AssignStmt (name: a)
+            NumberExpr (value: 2)
+      ReturnStmt
+        IdExpr (name: counter)

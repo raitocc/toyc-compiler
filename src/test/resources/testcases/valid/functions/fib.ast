@@ -1,0 +1,36 @@
+CompUnit
+  FuncDef (returnType: int, name: fib)
+    params:
+    Param (name: n)
+    body:
+    BlockStmt
+      IfStmt
+        cond:
+        BinaryExpr (op: <=)
+          IdExpr (name: n)
+          NumberExpr (value: 1)
+        then:
+        BlockStmt
+          ReturnStmt
+            IdExpr (name: n)
+      ReturnStmt
+        BinaryExpr (op: +)
+          CallExpr (funcName: fib)
+            args:
+            BinaryExpr (op: -)
+              IdExpr (name: n)
+              NumberExpr (value: 1)
+          CallExpr (funcName: fib)
+            args:
+            BinaryExpr (op: -)
+              IdExpr (name: n)
+              NumberExpr (value: 2)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      ReturnStmt
+        CallExpr (funcName: fib)
+          args:
+          NumberExpr (value: 10)
