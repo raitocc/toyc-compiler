@@ -25,7 +25,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
             }
             element.accept(this);
         }
-        
+
         // 2. 检查 main 函数的存在性与签名规则
         SymbolTable.Symbol mainSym = symTable.lookup("main");
         if (mainSym == null) {
@@ -45,15 +45,28 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
 
     @Override
     public Void visit(ConstDecl node) {
-        // TODO: 1. 常量必须编译期能确定其值：int val = evalConst(node.initExpr);
-        // TODO: 2. 在当前作用域的符号表中注册该常量符号 (标记为 const 并存储常量值)
+        // 无论是全局常量还是局部常量，其值都必须在编译期确定
+        int val = evalConst(node.initExpr);
+        
+        // 注册到符号表，标记为常量，并绑定求得的常量值
+        SymbolTable.Symbol constSym = new SymbolTable.Symbol(node.name, val);
+        symTable.define(node.name, constSym);
         return null;
     }
 
     @Override
     public Void visit(VarDecl node) {
-        // TODO: 1. 如果在全局作用域 (symTable.isGlobalScope())，initExpr 必须是编译期常量并求值
-        // TODO: 2. 在当前作用域的符号表中注册该变量符号 (标记为普通变量)
+        if (symTable.isGlobalScope()) {
+            // 全局变量：生命周期在程序运行前，其初值必须能在编译期确定（即必须是常量表达式）
+            evalConst(node.initExpr);
+        } else {
+            // 局部变量：初值可以是运行期的任何合法表达式，因此只需常规的 AST 语义检查
+            node.initExpr.accept(this);
+        }
+        
+        // 注册到符号表，标记为普通变量
+        SymbolTable.Symbol varSym = new SymbolTable.Symbol(node.name);
+        symTable.define(node.name, varSym);
         return null;
     }
 
@@ -169,17 +182,73 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
         return null;
     }
 
-    // ==========================================
-    // 推荐实现的辅助方法：
-    // ==========================================
-
     /**
      * 编译期常量求值（在 ConstDecl 以及全局变量 VarDecl 初始化中使用）
      */
     private int evalConst(Expr expr) {
-        // TODO: 递归计算常量表达式的值，对于 IdExpr 需去符号表查找其 const 属性。
-        // TODO: 捕获除数为零或模零错误。
-        throw new UnsupportedOperationException("evalConst not implemented");
+        if (expr instanceof NumberExpr numExpr) {
+            return numExpr.value;
+        }
+        if (expr instanceof IdExpr idExpr) {
+            SymbolTable.Symbol id = symTable.lookup(idExpr.name);
+            if (id == null) {
+                throw new RuntimeException("Semantic Error: Identifier '" + idExpr.name + "' is undefined");
+            }
+            if (!id.isConst) {
+                throw new RuntimeException("Semantic Error: Identifier '" + idExpr.name + "' is not a constant");
+            }
+            return id.constValue;
+        }
+        if (expr instanceof UnaryExpr unaryExpr) {
+            int origin = evalConst(unaryExpr.expr);
+            switch (unaryExpr.op) {
+                case "+":
+                    return origin;
+                case "-":
+                    return -origin;
+                case "!":
+                    return origin == 0 ? 1 : 0;
+            }
+        }
+        if (expr instanceof BinaryExpr binaryExpr) {
+            int left = evalConst(binaryExpr.left);
+            int right = evalConst(binaryExpr.right);
+            switch (binaryExpr.op) {
+                case "*":
+                    return left * right;
+                case "/":
+                    if (right == 0) {
+                        throw new RuntimeException("Semantic Error: Division by zero in constant expression");
+                    }
+                    return left / right;
+                case "%":
+                    if (right == 0) {
+                        throw new RuntimeException("Semantic Error: Modulo by zero in constant expression");
+                    }
+                    return left % right;
+                case "+":
+                    return left + right;
+                case "-":
+                    return left - right;
+                case "<":
+                    return left < right ? 1 : 0;
+                case ">":
+                    return left > right ? 1 : 0;
+                case "<=":
+                    return left <= right ? 1 : 0;
+                case ">=":
+                    return left >= right ? 1 : 0;
+                case "==":
+                    return left == right ? 1 : 0;
+                case "!=":
+                    return left != right ? 1 : 0;
+                case "&&":
+                    return left != 0 && right != 0 ? 1 : 0;
+                case "||":
+                    return left != 0 || right != 0 ? 1 : 0;
+            }
+        }
+        throw new RuntimeException("Semantic Error: Expression is not a compile-time constant");
     }
 
     /**
