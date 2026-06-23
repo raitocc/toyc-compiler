@@ -30,13 +30,23 @@ public class AST {
         public abstract <T> T accept(Visitor<T> visitor);
     }
 
+    /**<pre>{@code
+    compUnit : (decl | funcDef)+ EOF ;
+    decl : constDecl | varDecl ;}</pre>
+     */
     public static class CompUnit extends Node {
-        public final List<Node> elements; // Can be ConstDecl, VarDecl, or FuncDef
+        public final List<Node> elements; // ConstDecl, VarDecl, or FuncDef
         public CompUnit(List<Node> elements) { this.elements = elements; }
         @Override public <T> T accept(Visitor<T> v) { return v.visit(this); }
     }
 
     // ---- Declarations ----
+    /**
+     <pre>{@code
+     constDecl : 'const' 'int' ID '=' expr ';' ;
+     varDecl : 'int' ID '=' expr ';' ;}</pre>
+     @see FuncDef
+     */
     public static abstract class Decl extends Stmt {}
 
     public static class ConstDecl extends Decl {
@@ -54,8 +64,29 @@ public class AST {
     }
 
     // ---- Statements ----
+    /**
+     * <pre>{@code
+     * stmt : block
+     * | ';'
+     * | expr ';'
+     * | ID '=' expr ';'
+     * | decl
+     * | 'if' '(' expr ')' stmt ('else' stmt)?
+     * | 'while' '(' expr ')' stmt
+     * | 'break' ';'
+     * | 'continue' ';'
+     * | 'return' expr? ';'
+     * ;
+     * }</pre>
+     *
+     * 对于 decl：{@code public static abstract class Decl extends Stmt {}} 继承 Stmt 来体现。
+     * @see Decl
+     */
     public static abstract class Stmt extends Node {}
 
+    /**
+     * {@code block : '{' stmt* '}' ;}
+     */
     public static class BlockStmt extends Stmt {
         public final List<Stmt> stmts;
         public BlockStmt(List<Stmt> stmts) { this.stmts = stmts; }
@@ -72,6 +103,9 @@ public class AST {
         @Override public <T> T accept(Visitor<T> v) { return v.visit(this); }
     }
 
+    /**
+     * {@code ID '=' expr ';'}
+     */
     public static class AssignStmt extends Stmt {
         public final String name;
         public final Expr expr;
@@ -109,12 +143,18 @@ public class AST {
     }
 
     // ---- Functions ----
+    /**
+     * {@code param : 'int' ID ;}
+     */
     public static class Param extends Node {
         public final String name;
         public Param(String name) { this.name = name; }
         @Override public <T> T accept(Visitor<T> v) { return v.visit(this); }
     }
 
+    /**
+     * {@code funcDef : ('int' | 'void') ID '(' (param (',' param)*)? ')' block ;}
+     */
     public static class FuncDef extends Node {
         public final String returnType; // "int" or "void"
         public final String name;
@@ -127,6 +167,17 @@ public class AST {
     }
 
     // ---- Expressions ----
+    /**
+     * <pre>{@code
+     * primaryExpr : ID
+     *             | NUMBER
+     *             | '(' expr ')'
+     *             | ID '(' (expr (',' expr)*)? ')'
+     *             ;
+     *             }</pre>
+     * 一旦树的结构建立起来，树的分支先后顺序就已经决定了执行顺序，不再需要括号<br>
+     * 所以没有'(' expr ')'对应的括号节点
+     */
     public static abstract class Expr extends Node {}
 
     public static class NumberExpr extends Expr {
@@ -148,6 +199,18 @@ public class AST {
         @Override public <T> T accept(Visitor<T> v) { return v.visit(this); }
     }
 
+    /**
+     * <pre>{@code
+     * expr : primaryExpr
+     *      | ('+' | '-' | '!') expr
+     *      | expr op=('*' | '/' | '%') expr
+     *      | expr op=('+' | '-') expr
+     *      | expr op=('<' | '>' | '<=' | '>=' | '==' | '!=') expr
+     *      | expr '&&' expr
+     *      | expr '||' expr
+     *      ;
+     *      }</pre>
+     */
     public static class UnaryExpr extends Expr {
         public final String op;
         public final Expr expr;
