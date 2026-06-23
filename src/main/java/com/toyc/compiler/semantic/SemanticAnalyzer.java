@@ -62,8 +62,11 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
         } else {
             // 局部变量：初值可以是运行期的任何合法表达式，因此只需常规的 AST 语义检查
             node.initExpr.accept(this);
+            if (isVoidExpression(node.initExpr)) {
+                throw new RuntimeException("Semantic Error: Variable initialization expression has no return value");
+            }
         }
-
+        
         // 注册到符号表，标记为普通变量
         SymbolTable.Symbol varSym = new SymbolTable.Symbol(node.name);
         symTable.define(node.name, varSym);

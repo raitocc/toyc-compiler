@@ -1,0 +1,6 @@
+int foo() {
+    return; // Error: empty return in int function
+}
+int main() {
+    return foo();
+}

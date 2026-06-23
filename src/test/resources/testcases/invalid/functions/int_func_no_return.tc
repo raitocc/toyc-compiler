@@ -1,0 +1,9 @@
+int foo(int x) {
+    if (x > 0) {
+        return 1;
+    }
+    // Missing return in else path
+}
+int main() {
+    return foo(5);
+}

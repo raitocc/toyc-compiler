@@ -1,0 +1,7 @@
+void foo() {
+    return;
+}
+int main() {
+    int x = 1 + foo(); // Error: binary operator operands cannot be void
+    return 0;
+}

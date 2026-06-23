@@ -2,6 +2,7 @@ package com.toyc.compiler;
 
 import com.toyc.compiler.ast.AST;
 import com.toyc.compiler.ast.AstPrinter;
+import com.toyc.compiler.semantic.SemanticAnalyzer;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.jupiter.api.DynamicTest;
@@ -37,11 +38,12 @@ public class AstTest {
                  .filter(p -> p.toString().endsWith(".tc"))
                  .forEach(path -> {
                      String relativePath = TESTCASES_DIR.relativize(path).toString();
-                     boolean isSyntaxError = relativePath.contains("syntax_error") || path.getFileName().toString().contains("syntax_error");
+                     // 判断是否属于非法用例目录（无论语法错还是语义错，均存放在 invalid 目录下）
+                     boolean isInvalid = relativePath.contains("invalid") || path.toString().contains("invalid");
                      tests.add(DynamicTest.dynamicTest(relativePath, () -> {
-                         if (isSyntaxError) {
+                         if (isInvalid) {
                              assertThrows(Exception.class, () -> runCompiler(path), 
-                                 "Expected syntax error for testcase: " + relativePath);
+                                 "Expected compilation error (syntax or semantic) for testcase: " + relativePath);
                          } else {
                              String actualAst = runCompiler(path);
                              Path astPath = path.resolveSibling(path.getFileName().toString().replace(".tc", ".ast"));
@@ -79,6 +81,10 @@ public class AstTest {
         ParseTree tree = parser.compUnit();
         AstBuilder builder = new AstBuilder();
         AST.Node ast = builder.visit(tree);
+
+        // 运行语义分析器校验 AST 是否语义合法
+        SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
+        semanticAnalyzer.analyze(ast);
 
         AstPrinter printer = new AstPrinter();
         return ast.accept(printer);

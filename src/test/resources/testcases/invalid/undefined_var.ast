@@ -1,8 +1,0 @@
-CompUnit
-  FuncDef (returnType: int, name: main)
-    params:
-  []
-    body:
-    BlockStmt
-      ReturnStmt
-        IdExpr (name: b)

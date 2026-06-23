@@ -1,0 +1,9 @@
+void foo() {
+    return;
+}
+int main() {
+    while (foo()) { // Error: conditional expression cannot be void
+        return 1;
+    }
+    return 0;
+}

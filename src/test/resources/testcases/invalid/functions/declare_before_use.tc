@@ -1,0 +1,6 @@
+int main() {
+    return foo(); // Error: foo is called before its definition
+}
+int foo() {
+    return 1;
+}

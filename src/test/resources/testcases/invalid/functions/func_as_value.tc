@@ -1,0 +1,7 @@
+int foo() {
+    return 1;
+}
+int main() {
+    int x = foo; // Error: function name used as a value
+    return 0;
+}

@@ -1,0 +1,4 @@
+int main() {
+    int x = x + 1; // Error: 'x' referenced before its declaration statement finishes
+    return 0;
+}

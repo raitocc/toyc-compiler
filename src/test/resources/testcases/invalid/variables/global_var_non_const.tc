@@ -1,0 +1,5 @@
+int a = 1;
+int b = a + 1; // Error: 'a' is not a compile-time constant
+int main() {
+    return 0;
+}
