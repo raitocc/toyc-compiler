@@ -47,7 +47,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
     public Void visit(ConstDecl node) {
         // 无论是全局常量还是局部常量，其值都必须在编译期确定
         int val = evalConst(node.initExpr);
-        
+
         // 注册到符号表，标记为常量，并绑定求得的常量值
         SymbolTable.Symbol constSym = new SymbolTable.Symbol(node.name, val);
         symTable.define(node.name, constSym);
@@ -63,7 +63,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
             // 局部变量：初值可以是运行期的任何合法表达式，因此只需常规的 AST 语义检查
             node.initExpr.accept(this);
         }
-        
+
         // 注册到符号表，标记为普通变量
         SymbolTable.Symbol varSym = new SymbolTable.Symbol(node.name);
         symTable.define(node.name, varSym);
@@ -72,9 +72,11 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
 
     @Override
     public Void visit(BlockStmt node) {
-        // TODO: 1. 进入新局部作用域 (symTable.enterScope())
-        // TODO: 2. 遍历并检查其 stmts 语句列表
-        // TODO: 3. 退出局部作用域 (symTable.exitScope())
+        symTable.enterScope();
+        for (Stmt st : node.stmts) {
+            st.accept(this);
+        }
+        symTable.exitScope();
         return null;
     }
 
@@ -91,23 +93,48 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
 
     @Override
     public Void visit(AssignStmt node) {
-        // TODO: 1. 递归检查右侧表达式 node.expr.accept(this)
-        // TODO: 2. 检查左侧变量 node.name 是否已定义，并且不能是常量 (const)
-        // TODO: 3. 检查右侧表达式的类型不能为 void (isVoidExpression(node.expr))
+        node.expr.accept(this);
+        SymbolTable.Symbol leftSym = symTable.lookup(node.name);
+        if (leftSym == null) {
+            throw new RuntimeException("Semantic Error: Identifier '" + node.name + "' is undefined");
+        }
+        if (leftSym.isConst) {
+            throw new RuntimeException("Semantic Error: Cannot assign to constant variable '" + node.name + "'");
+        }
+        if (leftSym.isFunc) {
+            throw new RuntimeException("Semantic Error: Cannot assign to function '" + node.name + "'");
+        }
+        if (isVoidExpression(node.expr)){
+            throw new RuntimeException("Semantic Error: Assignment right-hand side expression has no return value");
+        }
         return null;
     }
 
     @Override
     public Void visit(IfStmt node) {
-        // TODO: 1. 检查条件表达式 cond，且 cond 的推导类型不能为 void
-        // TODO: 2. 递归检查 thenStmt 和 elseStmt
+        node.cond.accept(this);
+        if (isVoidExpression(node.cond)) {
+            throw new RuntimeException("Semantic Error: Condition expression in 'if' statement has no return value");
+        }
+        node.thenStmt.accept(this);
+        if (node.elseStmt != null) {
+            node.elseStmt.accept(this);
+        }
         return null;
     }
 
     @Override
     public Void visit(WhileStmt node) {
-        // TODO: 1. 检查条件表达式 cond，且 cond 的推导类型不能为 void
-        // TODO: 2. 递增 loopDepth 状态，递归检查 body 循环体，最后还原 loopDepth
+        node.cond.accept(this);
+        if (isVoidExpression(node.cond)) {
+            throw new RuntimeException("Semantic Error: Condition expression in 'while' statement has no return value");
+        }
+        loopDepth++;
+        try {
+            node.body.accept(this);
+        } finally {
+            loopDepth--;
+        }
         return null;
     }
 
@@ -248,6 +275,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
                     return left != 0 || right != 0 ? 1 : 0;
             }
         }
+        // 常量计算时如果有函数调用直接报错
         throw new RuntimeException("Semantic Error: Expression is not a compile-time constant");
     }
 
@@ -256,6 +284,10 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
      */
     private boolean isVoidExpression(Expr expr) {
         // TODO: 仅当表达式是一个 CallExpr，且其目标函数的返回类型为 "void" 时，表达式才是 void。其他一律为 int。
+        if (expr instanceof CallExpr callExpr) {
+            SymbolTable.Symbol func = symTable.lookup(callExpr.funcName);
+            return func != null && func.returnType != null && func.returnType.equals("void");
+        }
         return false;
     }
 
