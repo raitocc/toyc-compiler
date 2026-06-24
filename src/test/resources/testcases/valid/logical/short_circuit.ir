@@ -1,0 +1,37 @@
+FuncDef: increment()
+entry_0:
+    t0 = ADD @counter, 1
+    @counter = ASSIGN t0
+    RET 1
+
+FuncDef: main()
+entry_1:
+    t1 = ASSIGN 0
+    t2 = ASSIGN 0
+    BEQZ t1 -> and_end_3
+and_right_2:
+    t3 = CALL @increment
+    BEQZ t3 -> and_end_3
+    t2 = ASSIGN 1
+    JMP -> and_end_3
+and_end_3:
+    BEQZ t2 -> if_end_5
+if_then_4:
+    t1 = ASSIGN 1
+    JMP -> if_end_5
+if_end_5:
+    t4 = ASSIGN 1
+    BNEZ t1 -> or_end_7
+or_right_6:
+    t5 = CALL @increment
+    BNEZ t5 -> or_end_7
+    t4 = ASSIGN 0
+    JMP -> or_end_7
+or_end_7:
+    BEQZ t4 -> if_end_9
+if_then_8:
+    t1 = ASSIGN 2
+    JMP -> if_end_9
+if_end_9:
+    RET @counter
+

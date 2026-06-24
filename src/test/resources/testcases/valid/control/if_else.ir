@@ -1,0 +1,14 @@
+FuncDef: main()
+entry_0:
+    t0 = ASSIGN 10
+    t1 = SGT t0, 5
+    BEQZ t1 -> if_else_3
+if_then_1:
+    t0 = ASSIGN 2
+    JMP -> if_end_2
+if_else_3:
+    t0 = ASSIGN 1
+    JMP -> if_end_2
+if_end_2:
+    RET t0
+

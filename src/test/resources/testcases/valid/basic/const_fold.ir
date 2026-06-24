@@ -1,0 +1,5 @@
+FuncDef: main()
+entry_0:
+    t0 = ADD 3, 6
+    RET t0
+
