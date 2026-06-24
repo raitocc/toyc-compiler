@@ -1,6 +1,7 @@
 package com.toyc.compiler.ast;
 
 import java.util.List;
+import com.toyc.compiler.semantic.SymbolTable;
 
 public class AST {
 
@@ -29,6 +30,7 @@ public class AST {
     public static abstract class Node {
         public int line = -1;
         public int column = -1;
+        public SymbolTable.Symbol resolvedSymbol; // 语义分析绑定的符号实体
         public abstract <T> T accept(Visitor<T> visitor);
     }
 

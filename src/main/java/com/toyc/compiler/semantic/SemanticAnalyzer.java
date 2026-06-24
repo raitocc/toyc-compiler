@@ -72,6 +72,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
         }
         SymbolTable.Symbol constSym = new SymbolTable.Symbol(node.name, val);
         symTable.define(node.name, constSym);
+        node.resolvedSymbol = constSym;
         return null;
     }
 
@@ -94,6 +95,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
         }
         SymbolTable.Symbol varSym = new SymbolTable.Symbol(node.name);
         symTable.define(node.name, varSym);
+        node.resolvedSymbol = varSym;
         return null;
     }
 
@@ -212,6 +214,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
         }
         SymbolTable.Symbol funcSym = new SymbolTable.Symbol(node.name, node.returnType, node.params.size());
         symTable.define(node.name, funcSym);
+        node.resolvedSymbol = funcSym;
 
         // 2. 将当前函数的返回类型设置为该函数的返回类型
         currentFuncReturnType = node.returnType;
@@ -226,6 +229,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
             }
             SymbolTable.Symbol paramSym = new SymbolTable.Symbol(param.name);
             symTable.define(param.name, paramSym);
+            param.resolvedSymbol = paramSym;
         }
 
         // 5. 递归检查其 body 块
@@ -264,6 +268,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
         if (symbol.isFunc) {
             semError(node, "Function '" + node.name + "' cannot be used as a value");
         }
+        node.resolvedSymbol = symbol;
         return null;
     }
 
@@ -277,6 +282,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
         if (!symbol.isFunc) {
             semError(node, "Identifier '" + node.funcName + "' is not a function");
         }
+        node.resolvedSymbol = symbol;
         int argN = node.args.size();
         if (argN != symbol.paramCount) {
             semError(node, "Expected " + symbol.paramCount + " arguments, but got " + argN);
