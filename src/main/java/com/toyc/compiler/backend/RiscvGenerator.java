@@ -18,6 +18,9 @@ public class RiscvGenerator {
     
     // 追踪当前函数有多少个参数，方便 PARAM 指令使用
     private int currentParamCount = 0;
+    
+    // 当前处理的函数名 (用于 RET 跳转到 _epilogue)
+    private String currentFuncName;
 
     public RiscvGenerator() {
         this.asm = new StringBuilder();
@@ -53,20 +56,40 @@ public class RiscvGenerator {
     private void generateFunc(IR.FuncDef func) {
         offsetMap = new HashMap<>();
         currentOffset = 0;
-        
-        // 1. 预扫描该函数：给形参和所有遇见的局部虚拟变量分配栈空间
-        // TODO: 写一个循环遍历 func 里面的所有指令，把用到的 t0, t1 甚至新建立的局部变量，在 offsetMap 里分配好位子
-        
+        currentFuncName = func.name;
+        // 1. 给形参分配栈空间
+        for (String param : func.params) {
+            currentOffset -= 4;
+            offsetMap.put(param, currentOffset);
+        }
+        // 2. 预扫描所有指令，给所有没见过的新 TempVar 分配栈空间 ---
+        for (IR.BasicBlock block : func.blocks) {
+            for (IR.IrInstr instr : block.instructions) {
+                // 如果结果是个临时变量，且还没登记过，就登记
+                if (instr.result instanceof IR.TempVar) {
+                    String name = instr.result.toPrintString();
+                    if (!offsetMap.containsKey(name)) {
+                        currentOffset -= 4;
+                        offsetMap.put(name, currentOffset);
+                    }
+                }
+            }
+        }
+
         // 计算最终栈帧总大小 (对齐到 16 字节)
         int stackSize = (-currentOffset + 15) / 16 * 16;
         if (stackSize < 16) stackSize = 16; // 至少保证有足够的空间存 ra 和 fp
 
-        // 2. 生成函数名和 Prologue (函数序言)
+        // 生成函数名和 Prologue (函数序言)
         asm.append("    .globl ").append(func.name).append("\n");
         asm.append(func.name).append(":\n");
-        
-        // TODO: 在这里开辟栈空间 (addi sp, sp, -size)，并保存 ra 和 fp 寄存器
-        
+
+        // 开辟栈空间 -> 保存 ra 和旧 fp -> 更新新 fp
+        asm.append("    addi sp, sp, -").append(stackSize).append("\n");
+        asm.append("    sw ra, ").append(stackSize - 4).append("(sp)\n");
+        asm.append("    sw s0, ").append(stackSize - 8).append("(sp)\n");
+        asm.append("    addi s0, sp, ").append(stackSize).append("\n\n");
+
         // 3. 遍历基本块并生成指令
         for (IR.BasicBlock block : func.blocks) {
             generateBlock(block);
@@ -76,7 +99,11 @@ public class RiscvGenerator {
         // 当我们在指令遇到 RET 时，就直接跳转到这个统一的尾声代码
         asm.append(func.name).append("_epilogue:\n");
         
-        // TODO: 在这里从栈中恢复 ra 和 fp 寄存器，并退栈 (addi sp, sp, size)，最后加上 ret
+        // 从栈中恢复 ra 和 s0 寄存器，并退栈 (addi sp, sp, size)，最后加上 ret
+        asm.append("    lw ra, ").append(stackSize - 4).append("(sp)\n");
+        asm.append("    lw s0, ").append(stackSize - 8).append("(sp)\n");
+        asm.append("    addi sp, sp, ").append(stackSize).append("\n");
+        asm.append("    ret\n");
         
         asm.append("\n");
     }
@@ -102,33 +129,98 @@ public class RiscvGenerator {
             case MUL:
             case DIV:
             case MOD:
-                // TODO: 实现算术运算 (loadToReg -> 算术指令 -> storeFromReg)
+            case SEQ:
+            case SNE:
+            case SLT:
+            case SGT:
+            case SLE:
+            case SGE:
+                loadToReg(instr.arg1, "t0");
+                loadToReg(instr.arg2, "t1");
+                switch (instr.op) {
+                    case ADD -> asm.append("    add t2, t0, t1\n");
+                    case SUB -> asm.append("    sub t2, t0, t1\n");
+                    case MUL -> asm.append("    mul t2, t0, t1\n");
+                    case DIV -> asm.append("    div t2, t0, t1\n");
+                    case MOD -> asm.append("    rem t2, t0, t1\n");
+                    case SEQ -> {
+                        asm.append("    sub t2, t0, t1\n");
+                        asm.append("    seqz t2, t2\n");
+                    }
+                    case SNE -> {
+                        asm.append("    sub t2, t0, t1\n");
+                        asm.append("    snez t2, t2\n");
+                    }
+                    case SLT -> asm.append("    slt t2, t0, t1\n");
+                    case SGT -> asm.append("    slt t2, t1, t0\n");
+                    case SLE -> {
+                        asm.append("    slt t2, t1, t0\n");
+                        asm.append("    xori t2, t2, 1\n");
+                    }
+                    case SGE -> {
+                        asm.append("    slt t2, t0, t1\n");
+                        asm.append("    xori t2, t2, 1\n");
+                    }
+                }
+                storeFromReg("t2", instr.result);
                 break;
-                
+
+            case NEG:
+            case NOT:
+                loadToReg(instr.arg1, "t0");
+                if (instr.op == IR.OpCode.NEG) {
+                    asm.append("    neg t1, t0\n");
+                } else {
+                    asm.append("    seqz t1, t0\n");
+                }
+                storeFromReg("t1", instr.result);
+                break;
+
             case ASSIGN:
-                // TODO: 赋值 (loadToReg -> storeFromReg)
+                loadToReg(instr.arg1, "t0");
+                storeFromReg("t0", instr.result);
                 break;
                 
             case JMP:
+                asm.append("    j ").append(instr.result.toPrintString()).append("\n");
+                break;
+                
             case BEQZ:
+                loadToReg(instr.arg1, "t0");
+                asm.append("    beq t0, zero, ").append(instr.result.toPrintString()).append("\n");
+                break;
+                
             case BNEZ:
-                // TODO: 跳转指令 (beq, bne, j)
+                loadToReg(instr.arg1, "t0");
+                asm.append("    bne t0, zero, ").append(instr.result.toPrintString()).append("\n");
                 break;
                 
             case PARAM:
-                // TODO: 函数传参 (存到 a0-a7 寄存器里)
+                loadToReg(instr.arg1, "t0");
+                asm.append("    mv a").append(currentParamCount).append(", t0\n");
+                currentParamCount++;
                 break;
                 
             case CALL:
-                // TODO: 函数调用 (call，并取回 a0 作为结果)
+                String targetFunc = ((IR.NameValue) instr.arg1).name;
+                asm.append("    call ").append(targetFunc).append("\n");
+                if (instr.result != null) {
+                    // C 规范：函数返回值保存在 a0 中
+                    storeFromReg("a0", instr.result);
+                }
+                currentParamCount = 0; // 为下一次调用重置参数计数器
                 break;
                 
             case RET:
-                // TODO: 函数返回 (把返回值放到 a0，然后 j 函数的 epilogue)
+                if (instr.arg1 != null) {
+                    // 有返回值时，放入 a0 供调用者使用
+                    loadToReg(instr.arg1, "a0");
+                }
+                // 跳转到统一的 Epilogue 退出函数
+                asm.append("    j ").append(currentFuncName).append("_epilogue\n");
                 break;
 
             default:
-                // 占位
                 break;
         }
     }
@@ -138,8 +230,8 @@ public class RiscvGenerator {
     // ==========================================
 
     /**
-     * 将 IR.Value 里的值加载到指定的物理寄存器 (如 "t0", "t1")
-     * 如果 val 是常数 (ConstValue)，则生成 li 指令
+     * 将 IR.Value 里的值加载到指定的物理寄存器 (如 "t0", "t1")<br>
+     * 如果 val 是常数 (ConstValue)，则生成 li 指令<br>
      * 如果 val 是虚拟变量 (TempVar)，则从栈上 lw
      */
     private void loadToReg(IR.Value val, String physicalReg) {
@@ -152,9 +244,12 @@ public class RiscvGenerator {
                 throw new RuntimeException("TempVar " + tempName + " 未分配栈空间");
             }
             int offset = offsetMap.get(tempName);
-            asm.append("    lw ").append(physicalReg).append(", ").append(offset).append("(fp)\n");
+            asm.append("    lw ").append(physicalReg).append(", ").append(offset).append("(s0)\n");
         } else if (val instanceof IR.NameValue) {
-            // TODO: 全局变量的加载处理 (la -> lw)
+            String globalName = ((IR.NameValue) val).name;
+            // 全局变量：先加载地址，再从地址中取值
+            asm.append("    la ").append(physicalReg).append(", ").append(globalName).append("\n");
+            asm.append("    lw ").append(physicalReg).append(", 0(").append(physicalReg).append(")\n");
         }
     }
 
@@ -168,9 +263,12 @@ public class RiscvGenerator {
                 throw new RuntimeException("TempVar " + tempName + " 未分配栈空间");
             }
             int offset = offsetMap.get(tempName);
-            asm.append("    sw ").append(physicalReg).append(", ").append(offset).append("(fp)\n");
+            asm.append("    sw ").append(physicalReg).append(", ").append(offset).append("(s0)\n");
         } else if (target instanceof IR.NameValue) {
-            // TODO: 全局变量的存回处理 (la -> sw)
+            String globalName = ((IR.NameValue) target).name;
+            // 全局变量：借用不常用的临时寄存器 t6 存放全局变量的地址，然后存进去
+            asm.append("    la t6, ").append(globalName).append("\n");
+            asm.append("    sw ").append(physicalReg).append(", 0(t6)\n");
         }
     }
 }
