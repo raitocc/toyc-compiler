@@ -55,7 +55,7 @@ public class Main {
             
             // 如果开启了优化参数
             if (enableOpt) {
-                System.out.println("Optimization (-opt) enabled: running IrOptimizer...");
+                System.err.println("Optimization (-opt) enabled: running IrOptimizer...");
                 irGen.program = new com.toyc.compiler.ir.IrOptimizer().optimize(irGen.program);
             }
             

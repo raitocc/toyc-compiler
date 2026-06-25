@@ -80,7 +80,7 @@ mvn package
 通过命令行执行主程序：
 ```bash
 # -opt 参数用于开启 IR 优化器
-java -cp target/classes com.toyc.compiler.Main -opt source_file.tc output_file.s
+java -cp target/classes com.toyc.compiler.Main -opt < source_file.tc > output_file.s
 ```
 
 ---
