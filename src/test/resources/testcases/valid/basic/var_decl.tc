@@ -1,3 +1,4 @@
+// EXPECT_RETURN: 3
 // Test variable declarations
 int a = 1;
 int b = 2;

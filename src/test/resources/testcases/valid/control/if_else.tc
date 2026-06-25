@@ -1,3 +1,4 @@
+﻿// EXPECT_RETURN: 2
 // Test if-else
 int main() {
     int a = 10;
