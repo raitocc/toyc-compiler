@@ -30,14 +30,24 @@ public class Main {
             
             ParseTree tree = parser.compUnit();
             
+            // 1. 构建 AST
             AstBuilder builder = new AstBuilder();
             AST.Node ast = builder.visit(tree);
             
+            // 2. 语义分析
             SemanticAnalyzer analyzer = new SemanticAnalyzer();
             analyzer.analyze(ast);
             
-            AstPrinter printer = new AstPrinter();
-            System.out.print(ast.accept(printer));
+            // 3. 中端 IR 生成
+            com.toyc.compiler.ir.IrGenerator irGen = new com.toyc.compiler.ir.IrGenerator();
+            ast.accept(irGen);
+            
+            // 4. 后端 RISC-V 生成
+            com.toyc.compiler.backend.RiscvGenerator riscvGen = new com.toyc.compiler.backend.RiscvGenerator();
+            String asm = riscvGen.generate(irGen.program);
+            
+            // 直接输出汇编代码到标准输出
+            System.out.println(asm);
             
         } catch (Exception e) {
             System.err.println(e.getMessage());
