@@ -1,0 +1,23 @@
+FuncDef: fib(t0)
+entry_0:
+    t1 = SLE t0, 1
+    BEQZ t1 -> if_end_2
+if_then_1:
+    RET t0
+    JMP -> if_end_2
+if_end_2:
+    t2 = SUB t0, 1
+    PARAM t2
+    t3 = CALL @fib
+    t4 = SUB t0, 2
+    PARAM t4
+    t5 = CALL @fib
+    t6 = ADD t3, t5
+    RET t6
+
+FuncDef: main()
+entry_3:
+    PARAM 35
+    t7 = CALL @fib
+    RET t7
+

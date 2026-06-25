@@ -1,0 +1,67 @@
+CompUnit
+  FuncDef (returnType: int, name: is_prime)
+    params:
+    Param (name: n)
+    body:
+    BlockStmt
+      VarDecl (name: i)
+        NumberExpr (value: 2)
+      WhileStmt
+        cond:
+        BinaryExpr (op: <=)
+          BinaryExpr (op: *)
+            IdExpr (name: i)
+            IdExpr (name: i)
+          IdExpr (name: n)
+        body:
+        BlockStmt
+          IfStmt
+            cond:
+            BinaryExpr (op: ==)
+              BinaryExpr (op: %)
+                IdExpr (name: n)
+                IdExpr (name: i)
+              NumberExpr (value: 0)
+            then:
+            BlockStmt
+              ReturnStmt
+                NumberExpr (value: 0)
+          AssignStmt (name: i)
+            BinaryExpr (op: +)
+              IdExpr (name: i)
+              NumberExpr (value: 1)
+      ReturnStmt
+        NumberExpr (value: 1)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: count)
+        NumberExpr (value: 0)
+      VarDecl (name: i)
+        NumberExpr (value: 2)
+      WhileStmt
+        cond:
+        BinaryExpr (op: <)
+          IdExpr (name: i)
+          NumberExpr (value: 200000)
+        body:
+        BlockStmt
+          IfStmt
+            cond:
+            CallExpr (funcName: is_prime)
+              args:
+              IdExpr (name: i)
+            then:
+            BlockStmt
+              AssignStmt (name: count)
+                BinaryExpr (op: +)
+                  IdExpr (name: count)
+                  NumberExpr (value: 1)
+          AssignStmt (name: i)
+            BinaryExpr (op: +)
+              IdExpr (name: i)
+              NumberExpr (value: 1)
+      ReturnStmt
+        IdExpr (name: count)

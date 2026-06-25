@@ -1,0 +1,24 @@
+FuncDef: hanoi(t0)
+entry_0:
+    t1 = SEQ t0, 1
+    BEQZ t1 -> if_end_2
+if_then_1:
+    RET 1
+    JMP -> if_end_2
+if_end_2:
+    t2 = SUB t0, 1
+    PARAM t2
+    t3 = CALL @hanoi
+    t4 = ADD t3, 1
+    t5 = SUB t0, 1
+    PARAM t5
+    t6 = CALL @hanoi
+    t7 = ADD t4, t6
+    RET t7
+
+FuncDef: main()
+entry_3:
+    PARAM 25
+    t8 = CALL @hanoi
+    RET t8
+

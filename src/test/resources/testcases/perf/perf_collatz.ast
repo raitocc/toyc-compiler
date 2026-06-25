@@ -1,0 +1,77 @@
+CompUnit
+  FuncDef (returnType: int, name: collatz_length)
+    params:
+    Param (name: n)
+    body:
+    BlockStmt
+      VarDecl (name: len)
+        NumberExpr (value: 0)
+      WhileStmt
+        cond:
+        BinaryExpr (op: >)
+          IdExpr (name: n)
+          NumberExpr (value: 1)
+        body:
+        BlockStmt
+          IfStmt
+            cond:
+            BinaryExpr (op: ==)
+              BinaryExpr (op: %)
+                IdExpr (name: n)
+                NumberExpr (value: 2)
+              NumberExpr (value: 0)
+            then:
+            BlockStmt
+              AssignStmt (name: n)
+                BinaryExpr (op: /)
+                  IdExpr (name: n)
+                  NumberExpr (value: 2)
+            else:
+            BlockStmt
+              AssignStmt (name: n)
+                BinaryExpr (op: +)
+                  BinaryExpr (op: *)
+                    NumberExpr (value: 3)
+                    IdExpr (name: n)
+                  NumberExpr (value: 1)
+          AssignStmt (name: len)
+            BinaryExpr (op: +)
+              IdExpr (name: len)
+              NumberExpr (value: 1)
+      ReturnStmt
+        IdExpr (name: len)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: max_len)
+        NumberExpr (value: 0)
+      VarDecl (name: i)
+        NumberExpr (value: 1)
+      WhileStmt
+        cond:
+        BinaryExpr (op: <)
+          IdExpr (name: i)
+          NumberExpr (value: 100000)
+        body:
+        BlockStmt
+          VarDecl (name: l)
+            CallExpr (funcName: collatz_length)
+              args:
+              IdExpr (name: i)
+          IfStmt
+            cond:
+            BinaryExpr (op: >)
+              IdExpr (name: l)
+              IdExpr (name: max_len)
+            then:
+            BlockStmt
+              AssignStmt (name: max_len)
+                IdExpr (name: l)
+          AssignStmt (name: i)
+            BinaryExpr (op: +)
+              IdExpr (name: i)
+              NumberExpr (value: 1)
+      ReturnStmt
+        IdExpr (name: max_len)

@@ -1,0 +1,38 @@
+CompUnit
+  FuncDef (returnType: int, name: hanoi)
+    params:
+    Param (name: n)
+    body:
+    BlockStmt
+      IfStmt
+        cond:
+        BinaryExpr (op: ==)
+          IdExpr (name: n)
+          NumberExpr (value: 1)
+        then:
+        BlockStmt
+          ReturnStmt
+            NumberExpr (value: 1)
+      ReturnStmt
+        BinaryExpr (op: +)
+          BinaryExpr (op: +)
+            CallExpr (funcName: hanoi)
+              args:
+              BinaryExpr (op: -)
+                IdExpr (name: n)
+                NumberExpr (value: 1)
+            NumberExpr (value: 1)
+          CallExpr (funcName: hanoi)
+            args:
+            BinaryExpr (op: -)
+              IdExpr (name: n)
+              NumberExpr (value: 1)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      ReturnStmt
+        CallExpr (funcName: hanoi)
+          args:
+          NumberExpr (value: 25)

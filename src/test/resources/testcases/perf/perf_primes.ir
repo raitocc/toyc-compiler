@@ -1,0 +1,43 @@
+FuncDef: is_prime(t0)
+entry_0:
+    t1 = ASSIGN 2
+while_cond_1:
+    t2 = MUL t1, t1
+    t3 = SLE t2, t0
+    BEQZ t3 -> while_end_3
+while_body_2:
+    t4 = MOD t0, t1
+    t5 = SEQ t4, 0
+    BEQZ t5 -> if_end_5
+if_then_4:
+    RET 0
+    JMP -> if_end_5
+if_end_5:
+    t6 = ADD t1, 1
+    t1 = ASSIGN t6
+    JMP -> while_cond_1
+while_end_3:
+    RET 1
+
+FuncDef: main()
+entry_6:
+    t7 = ASSIGN 0
+    t8 = ASSIGN 2
+while_cond_7:
+    t9 = SLT t8, 200000
+    BEQZ t9 -> while_end_9
+while_body_8:
+    PARAM t8
+    t10 = CALL @is_prime
+    BEQZ t10 -> if_end_11
+if_then_10:
+    t11 = ADD t7, 1
+    t7 = ASSIGN t11
+    JMP -> if_end_11
+if_end_11:
+    t12 = ADD t8, 1
+    t8 = ASSIGN t12
+    JMP -> while_cond_7
+while_end_9:
+    RET t7
+

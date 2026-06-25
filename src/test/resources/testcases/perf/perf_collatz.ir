@@ -1,0 +1,49 @@
+FuncDef: collatz_length(t0)
+entry_0:
+    t1 = ASSIGN 0
+while_cond_1:
+    t2 = SGT t0, 1
+    BEQZ t2 -> while_end_3
+while_body_2:
+    t3 = MOD t0, 2
+    t4 = SEQ t3, 0
+    BEQZ t4 -> if_else_6
+if_then_4:
+    t5 = DIV t0, 2
+    t0 = ASSIGN t5
+    JMP -> if_end_5
+if_else_6:
+    t6 = MUL 3, t0
+    t7 = ADD t6, 1
+    t0 = ASSIGN t7
+    JMP -> if_end_5
+if_end_5:
+    t8 = ADD t1, 1
+    t1 = ASSIGN t8
+    JMP -> while_cond_1
+while_end_3:
+    RET t1
+
+FuncDef: main()
+entry_7:
+    t9 = ASSIGN 0
+    t10 = ASSIGN 1
+while_cond_8:
+    t11 = SLT t10, 100000
+    BEQZ t11 -> while_end_10
+while_body_9:
+    PARAM t10
+    t13 = CALL @collatz_length
+    t12 = ASSIGN t13
+    t14 = SGT t12, t9
+    BEQZ t14 -> if_end_12
+if_then_11:
+    t9 = ASSIGN t12
+    JMP -> if_end_12
+if_end_12:
+    t15 = ADD t10, 1
+    t10 = ASSIGN t15
+    JMP -> while_cond_8
+while_end_10:
+    RET t9
+

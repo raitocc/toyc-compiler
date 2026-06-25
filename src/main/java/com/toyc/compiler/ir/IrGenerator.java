@@ -224,7 +224,7 @@ public class IrGenerator implements AST.Visitor<IR.Value> {
         if (node.expr != null) {
             value = node.expr.accept(this);
         }
-        addInstr(new IR.IrInstr(IR.OpCode.RET, value));
+        addInstr(new IR.IrInstr(IR.OpCode.RET, value, null));
         return null;
     }
 

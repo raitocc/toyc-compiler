@@ -12,6 +12,14 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        boolean enableOpt = false;
+        for (String arg : args) {
+            if ("-opt".equals(arg)) {
+                enableOpt = true;
+                break;
+            }
+        }
+
         try {
             CharStream input = CharStreams.fromStream(System.in);
             
@@ -44,6 +52,13 @@ public class Main {
             
             // 4. 后端 RISC-V 生成
             com.toyc.compiler.backend.RiscvGenerator riscvGen = new com.toyc.compiler.backend.RiscvGenerator();
+            
+            // 如果开启了优化参数
+            if (enableOpt) {
+                System.out.println("Optimization (-opt) enabled: running IrOptimizer...");
+                irGen.program = new com.toyc.compiler.ir.IrOptimizer().optimize(irGen.program);
+            }
+            
             String asm = riscvGen.generate(irGen.program);
             
             // 直接输出汇编代码到标准输出

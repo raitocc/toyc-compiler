@@ -1,0 +1,12 @@
+int hanoi(int n) {
+    if (n == 1) {
+        return 1;
+    }
+    return hanoi(n - 1) + 1 + hanoi(n - 1);
+}
+
+int main() {
+    // 汉诺塔 25 层移动次数
+    // 这也是一棵满二叉树的递归调用
+    return hanoi(25); 
+}
