@@ -16,6 +16,7 @@ entry_0:
     lw t0, -8(s0)
     beq t0, zero, if_end_2
 if_then_1:
+    lw a0, -4(s0)
     j fib_epilogue
     j if_end_2
 if_end_2:
@@ -39,6 +40,7 @@ if_end_2:
     lw t1, -24(s0)
     add t2, t0, t1
     sw t2, -28(s0)
+    lw a0, -28(s0)
     j fib_epilogue
 fib_epilogue:
     lw ra, 28(sp)
@@ -58,6 +60,7 @@ entry_3:
     mv a0, t0
     call fib
     sw a0, -4(s0)
+    lw a0, -4(s0)
     j main_epilogue
 main_epilogue:
     lw ra, 12(sp)

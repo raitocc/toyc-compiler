@@ -212,9 +212,9 @@ public class RiscvGenerator {
                 break;
                 
             case RET:
-                if (instr.arg1 != null) {
+                if (instr.result != null) {
                     // 有返回值时，放入 a0 供调用者使用
-                    loadToReg(instr.arg1, "a0");
+                    loadToReg(instr.result, "a0");
                 }
                 // 跳转到统一的 Epilogue 退出函数
                 asm.append("    j ").append(currentFuncName).append("_epilogue\n");

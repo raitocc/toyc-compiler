@@ -57,6 +57,7 @@ if_then_6:
 if_end_7:
     j while_cond_1
 while_end_3:
+    lw a0, -4(s0)
     j main_epilogue
 main_epilogue:
     lw ra, 28(sp)

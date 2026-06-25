@@ -23,6 +23,7 @@ if_else_3:
     li t0, 1
     j if_end_2
 if_end_2:
+    lw a0, -4(s0)
     j main_epilogue
 main_epilogue:
     lw ra, 12(sp)

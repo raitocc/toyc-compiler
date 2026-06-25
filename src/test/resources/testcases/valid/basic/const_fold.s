@@ -12,6 +12,7 @@ entry_0:
     li t1, 6
     add t2, t0, t1
     sw t2, -4(s0)
+    lw a0, -4(s0)
     j main_epilogue
 main_epilogue:
     lw ra, 12(sp)

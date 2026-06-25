@@ -32,6 +32,7 @@ while_body_2:
     lw t0, -20(s0)
     j while_cond_1
 while_end_3:
+    lw a0, -4(s0)
     j main_epilogue
 main_epilogue:
     lw ra, 28(sp)

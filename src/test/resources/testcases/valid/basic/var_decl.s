@@ -25,6 +25,7 @@ entry_0:
     sw t2, -4(s0)
     lw t0, -4(s0)
     sw t0, -8(s0)
+    lw a0, -8(s0)
     j main_epilogue
 main_epilogue:
     lw ra, 12(sp)

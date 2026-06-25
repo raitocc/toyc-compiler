@@ -19,6 +19,7 @@ entry_0:
     add t2, t0, t1
     sw t2, -4(s0)
     lw t0, -4(s0)
+    li a0, 1
     j increment_epilogue
 increment_epilogue:
     lw ra, 12(sp)
@@ -74,6 +75,8 @@ if_then_8:
     li t0, 2
     j if_end_9
 if_end_9:
+    la a0, counter
+    lw a0, 0(a0)
     j main_epilogue
 main_epilogue:
     lw ra, 28(sp)
