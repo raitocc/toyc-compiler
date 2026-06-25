@@ -7,6 +7,8 @@ fib:
     sw s0, 40(sp)
     addi s0, sp, 48
 
+    sw a0, -12(s0)
+
 entry_0:
     lw t0, -12(s0)
     li t1, 1
@@ -54,6 +56,7 @@ main:
     sw ra, 12(sp)
     sw s0, 8(sp)
     addi s0, sp, 16
+
 
 entry_3:
     li t0, 10

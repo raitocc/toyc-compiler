@@ -7,6 +7,7 @@ main:
     sw s0, 8(sp)
     addi s0, sp, 16
 
+
 entry_0:
     li t0, 10
     sw t0, -12(s0)
@@ -18,9 +19,11 @@ entry_0:
     beq t0, zero, if_else_3
 if_then_1:
     li t0, 2
+    sw t0, -12(s0)
     j if_end_2
 if_else_3:
     li t0, 1
+    sw t0, -12(s0)
     j if_end_2
 if_end_2:
     lw a0, -12(s0)

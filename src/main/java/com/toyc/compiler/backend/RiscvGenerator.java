@@ -85,11 +85,20 @@ public class RiscvGenerator {
         asm.append("    .globl ").append(func.name).append("\n");
         asm.append(func.name).append(":\n");
 
-        // 开辟栈空间 -> 保存 ra 和旧 fp -> 更新新 fp
+        // 核心三步走：开辟空间 -> 保存 ra 和旧 fp -> 更新新 fp
         asm.append("    addi sp, sp, -").append(stackSize).append("\n");
         asm.append("    sw ra, ").append(stackSize - 4).append("(sp)\n");
         asm.append("    sw s0, ").append(stackSize - 8).append("(sp)\n");
         asm.append("    addi s0, sp, ").append(stackSize).append("\n\n");
+        
+        // --- 【新增关键步骤】：将传入的形参寄存器 (a0-a7) 存入到分配好的内存坑位中 ---
+        for (int i = 0; i < func.params.size(); i++) {
+            if (i < 8) {
+                int offset = offsetMap.get(func.params.get(i));
+                asm.append("    sw a").append(i).append(", ").append(offset).append("(s0)\n");
+            }
+        }
+        asm.append("\n");
 
         // 3. 遍历基本块并生成指令
         for (IR.BasicBlock block : func.blocks) {

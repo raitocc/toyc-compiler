@@ -12,6 +12,7 @@ increment:
     sw s0, 8(sp)
     addi s0, sp, 16
 
+
 entry_0:
     la t0, counter
     lw t0, 0(t0)
@@ -19,6 +20,8 @@ entry_0:
     add t2, t0, t1
     sw t2, -12(s0)
     lw t0, -12(s0)
+    la t6, counter
+    sw t0, 0(t6)
     li a0, 1
     j increment_epilogue
 increment_epilogue:
@@ -33,6 +36,7 @@ main:
     sw ra, 28(sp)
     sw s0, 24(sp)
     addi s0, sp, 32
+
 
 entry_1:
     li t0, 0
@@ -54,6 +58,7 @@ and_end_3:
     beq t0, zero, if_end_5
 if_then_4:
     li t0, 1
+    sw t0, -12(s0)
     j if_end_5
 if_end_5:
     li t0, 1
@@ -73,6 +78,7 @@ or_end_7:
     beq t0, zero, if_end_9
 if_then_8:
     li t0, 2
+    sw t0, -12(s0)
     j if_end_9
 if_end_9:
     la a0, counter

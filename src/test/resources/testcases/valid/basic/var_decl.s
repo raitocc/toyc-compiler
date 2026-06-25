@@ -16,6 +16,7 @@ main:
     sw s0, 8(sp)
     addi s0, sp, 16
 
+
 entry_0:
     la t0, a
     lw t0, 0(t0)

@@ -139,6 +139,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
         if (isVoidExpression(node.expr)) {
             semError(node.expr, "Assignment right-hand side expression has no return value");
         }
+        node.resolvedSymbol = leftSym;
         return null;
     }
 

@@ -7,6 +7,7 @@ main:
     sw s0, 8(sp)
     addi s0, sp, 16
 
+
 entry_0:
     li t0, 3
     li t1, 6
