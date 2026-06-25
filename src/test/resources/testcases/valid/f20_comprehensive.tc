@@ -1,0 +1,33 @@
+int gcd(int a, int b) {
+    if (b == 0) return a;
+    return gcd(b, a % b);
+}
+
+int magic(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10) {
+    int sum1 = a1 + a2 + a3 + a4 + a5;
+    int sum2 = a6 + a7 + a8 + a9 + a10;
+    
+    // complex syntax: tight operators
+    int diff = sum1-sum2;
+    int res = diff*-1;
+    
+    return gcd(res, 100);
+}
+
+int main() {
+    int i = 1;
+    int acc = 0;
+    while (i <= 10) {
+        // parameters: 1, 2, ..., 10
+        // sum1 = 15, sum2 = 40, diff = -25, res = 25
+        // gcd(25, 100) = 25
+        acc = acc + magic(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        i = i + 1;
+    }
+    
+    // acc = 25 * 10 = 250
+    if (acc == 250) {
+        return 0;
+    }
+    return acc;
+}

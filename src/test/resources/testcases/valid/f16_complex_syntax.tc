@@ -1,0 +1,14 @@
+int main() {
+    int a = 10;
+    int b = 5;
+    
+    // Lexer edge cases: no space before or after negative sign
+    int c = a-1;
+    int d = b*-2;
+    int e = -a+-b;
+    
+    if (c == 9 && d == -10 && e == -15) {
+        return 0;
+    }
+    return 1;
+}

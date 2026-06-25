@@ -1,0 +1,72 @@
+CompUnit
+  FuncDef (returnType: int, name: add_12)
+    params:
+    Param (name: a1)
+    Param (name: a2)
+    Param (name: a3)
+    Param (name: a4)
+    Param (name: a5)
+    Param (name: a6)
+    Param (name: a7)
+    Param (name: a8)
+    Param (name: a9)
+    Param (name: a10)
+    Param (name: a11)
+    Param (name: a12)
+    body:
+    BlockStmt
+      ReturnStmt
+        BinaryExpr (op: +)
+          BinaryExpr (op: +)
+            BinaryExpr (op: +)
+              BinaryExpr (op: +)
+                BinaryExpr (op: +)
+                  BinaryExpr (op: +)
+                    BinaryExpr (op: +)
+                      BinaryExpr (op: +)
+                        BinaryExpr (op: +)
+                          BinaryExpr (op: +)
+                            BinaryExpr (op: +)
+                              IdExpr (name: a1)
+                              IdExpr (name: a2)
+                            IdExpr (name: a3)
+                          IdExpr (name: a4)
+                        IdExpr (name: a5)
+                      IdExpr (name: a6)
+                    IdExpr (name: a7)
+                  IdExpr (name: a8)
+                IdExpr (name: a9)
+              IdExpr (name: a10)
+            IdExpr (name: a11)
+          IdExpr (name: a12)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: sum)
+        CallExpr (funcName: add_12)
+          args:
+          NumberExpr (value: 1)
+          NumberExpr (value: 2)
+          NumberExpr (value: 3)
+          NumberExpr (value: 4)
+          NumberExpr (value: 5)
+          NumberExpr (value: 6)
+          NumberExpr (value: 7)
+          NumberExpr (value: 8)
+          NumberExpr (value: 9)
+          NumberExpr (value: 10)
+          NumberExpr (value: 11)
+          NumberExpr (value: 12)
+      IfStmt
+        cond:
+        BinaryExpr (op: ==)
+          IdExpr (name: sum)
+          NumberExpr (value: 78)
+        then:
+        BlockStmt
+          ReturnStmt
+            NumberExpr (value: 0)
+      ReturnStmt
+        IdExpr (name: sum)

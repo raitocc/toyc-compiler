@@ -53,7 +53,7 @@ ID : [_A-Za-z][_A-Za-z0-9]* ;
 // Support negative numbers directly in the lexer? 
 // The grammar says NUMBER -> '-?'(0|[1-9][0-9]*)
 // Wait! In the requirements: `NUMBER` -> `-?(0|[1-9][0-9]*)`
-NUMBER : '-'? ('0' | [1-9][0-9]*) ;
+NUMBER : ('0' | [1-9][0-9]*) ;
 
 // Whitespace and BOM
 WS : [ \t\r\n\uFEFF]+ -> skip ;

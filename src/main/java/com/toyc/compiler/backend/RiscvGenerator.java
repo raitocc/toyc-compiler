@@ -86,8 +86,13 @@ public class RiscvGenerator {
         for (int i = 0; i < func.params.size(); i++) {
             String param = func.params.get(i);
             if (!regMap.containsKey(param)) {
-                currentOffset -= 4;
-                offsetMap.put(param, currentOffset);
+                if (i >= 8) {
+                    // 第9个及以后的参数：直接映射到Caller的栈区 (s0 + (i-8)*4)
+                    offsetMap.put(param, (i - 8) * 4);
+                } else {
+                    currentOffset -= 4;
+                    offsetMap.put(param, currentOffset);
+                }
             }
         }
 
@@ -98,8 +103,10 @@ public class RiscvGenerator {
             }
         }
 
-        // 保证 16 字节对齐
-        int stackSize = (-currentOffset + 15) / 16 * 16;
+        // 保证 16 字节对齐（增加 maxOutArgs 所需的空间放在栈的最底部）
+        int maxOutArgsSpace = func.maxOutArgs * 4;
+        int totalStack = -currentOffset + maxOutArgsSpace;
+        int stackSize = (totalStack + 15) / 16 * 16;
         if (stackSize < 16) stackSize = 16;
 
         // 4. 生成函数名和 Prologue
@@ -114,13 +121,22 @@ public class RiscvGenerator {
         }
         asm.append("    addi s0, sp, ").append(stackSize).append("\n\n");
 
-        // 5. 初始化形参：将传入的 a0-a7 转存到目标地 (寄存器或栈)
-        for (int i = 0; i < func.params.size() && i < 8; i++) {
+        // 5. 初始化形参：将传入的 a0-a7 转存到目标地 (寄存器或栈)；将传入的栈上参数（若被分配到寄存器）加载进来
+        for (int i = 0; i < func.params.size(); i++) {
             String param = func.params.get(i);
-            if (regMap.containsKey(param)) {
-                asm.append("    mv ").append(regMap.get(param)).append(", a").append(i).append("\n");
+            if (i < 8) {
+                if (regMap.containsKey(param)) {
+                    asm.append("    mv ").append(regMap.get(param)).append(", a").append(i).append("\n");
+                } else {
+                    asm.append("    sw a").append(i).append(", ").append(offsetMap.get(param)).append("(s0)\n");
+                }
             } else {
-                asm.append("    sw a").append(i).append(", ").append(offsetMap.get(param)).append("(s0)\n");
+                // 第 9 个参数起在 Caller 栈帧中： (i-8)*4(s0)
+                // 如果它被分配了物理寄存器，我们需要显式把它从栈上读进来
+                // 如果它没有分配物理寄存器，我们已经在步骤 3 将它的 offsetMap 设置为 (i-8)*4 了，无需在此做任何拷贝
+                if (regMap.containsKey(param)) {
+                    asm.append("    lw ").append(regMap.get(param)).append(", ").append((i - 8) * 4).append("(s0)\n");
+                }
             }
         }
         asm.append("\n");
@@ -236,7 +252,12 @@ public class RiscvGenerator {
                 
             case PARAM:
                 String rParam = resolveReg(instr.arg1, "t0");
-                asm.append("    mv a").append(currentParamCount).append(", ").append(rParam).append("\n");
+                if (currentParamCount < 8) {
+                    asm.append("    mv a").append(currentParamCount).append(", ").append(rParam).append("\n");
+                } else {
+                    int spOffset = (currentParamCount - 8) * 4;
+                    asm.append("    sw ").append(rParam).append(", ").append(spOffset).append("(sp)\n");
+                }
                 currentParamCount++;
                 break;
                 

@@ -146,6 +146,7 @@ public class IR {
         public List<String> params = new ArrayList<>();
         // 函数体由一系列的基本块组成
         public List<BasicBlock> blocks = new ArrayList<>();
+        public int maxOutArgs = 0; // 调用的子函数中最大的参数数量减去 8（用于提前在 Caller 栈帧分配传参区）
         
         public FuncDef(String name) {
             this.name = name;

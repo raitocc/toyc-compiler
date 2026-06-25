@@ -1,0 +1,39 @@
+FuncDef: main()
+entry_0:
+    t0 = ASSIGN 10
+    t1 = ASSIGN 5
+    t3 = SUB t0, 1
+    t2 = ASSIGN t3
+    t5 = NEG 2
+    t6 = MUL t1, t5
+    t4 = ASSIGN t6
+    t8 = NEG t0
+    t9 = NEG t1
+    t10 = ADD t8, t9
+    t7 = ASSIGN t10
+    t11 = ASSIGN 0
+    t12 = ASSIGN 0
+    t13 = SEQ t2, 9
+    BEQZ t13 -> and_end_4
+and_right_3:
+    t14 = NEG 10
+    t15 = SEQ t4, t14
+    BEQZ t15 -> and_end_4
+    t12 = ASSIGN 1
+    JMP -> and_end_4
+and_end_4:
+    BEQZ t12 -> and_end_2
+and_right_1:
+    t16 = NEG 15
+    t17 = SEQ t7, t16
+    BEQZ t17 -> and_end_2
+    t11 = ASSIGN 1
+    JMP -> and_end_2
+and_end_2:
+    BEQZ t11 -> if_end_6
+if_then_5:
+    RET 0
+    JMP -> if_end_6
+if_end_6:
+    RET 1
+

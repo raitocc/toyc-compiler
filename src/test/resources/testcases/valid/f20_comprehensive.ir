@@ -1,0 +1,69 @@
+FuncDef: gcd(t0, t1)
+entry_0:
+    t2 = SEQ t1, 0
+    BEQZ t2 -> if_end_2
+if_then_1:
+    RET t0
+    JMP -> if_end_2
+if_end_2:
+    PARAM t1
+    t3 = MOD t0, t1
+    PARAM t3
+    t4 = CALL @gcd
+    RET t4
+
+FuncDef: magic(t5, t6, t7, t8, t9, t10, t11, t12, t13, t14)
+entry_3:
+    t16 = ADD t5, t6
+    t17 = ADD t16, t7
+    t18 = ADD t17, t8
+    t19 = ADD t18, t9
+    t15 = ASSIGN t19
+    t21 = ADD t10, t11
+    t22 = ADD t21, t12
+    t23 = ADD t22, t13
+    t24 = ADD t23, t14
+    t20 = ASSIGN t24
+    t26 = SUB t15, t20
+    t25 = ASSIGN t26
+    t28 = NEG 1
+    t29 = MUL t25, t28
+    t27 = ASSIGN t29
+    PARAM t27
+    PARAM 100
+    t30 = CALL @gcd
+    RET t30
+
+FuncDef: main()
+entry_4:
+    t31 = ASSIGN 1
+    t32 = ASSIGN 0
+while_cond_5:
+    t33 = SLE t31, 10
+    BEQZ t33 -> while_end_7
+while_body_6:
+    PARAM 1
+    PARAM 2
+    PARAM 3
+    PARAM 4
+    PARAM 5
+    PARAM 6
+    PARAM 7
+    PARAM 8
+    PARAM 9
+    PARAM 10
+    t34 = CALL @magic
+    t35 = ADD t32, t34
+    t32 = ASSIGN t35
+    t36 = ADD t31, 1
+    t31 = ASSIGN t36
+    JMP -> while_cond_5
+while_end_7:
+    t37 = SEQ t32, 250
+    BEQZ t37 -> if_end_9
+if_then_8:
+    RET 0
+    JMP -> if_end_9
+if_end_9:
+    RET t32
+

@@ -1,0 +1,116 @@
+CompUnit
+  FuncDef (returnType: int, name: gcd)
+    params:
+    Param (name: a)
+    Param (name: b)
+    body:
+    BlockStmt
+      IfStmt
+        cond:
+        BinaryExpr (op: ==)
+          IdExpr (name: b)
+          NumberExpr (value: 0)
+        then:
+        ReturnStmt
+          IdExpr (name: a)
+      ReturnStmt
+        CallExpr (funcName: gcd)
+          args:
+          IdExpr (name: b)
+          BinaryExpr (op: %)
+            IdExpr (name: a)
+            IdExpr (name: b)
+  FuncDef (returnType: int, name: magic)
+    params:
+    Param (name: a1)
+    Param (name: a2)
+    Param (name: a3)
+    Param (name: a4)
+    Param (name: a5)
+    Param (name: a6)
+    Param (name: a7)
+    Param (name: a8)
+    Param (name: a9)
+    Param (name: a10)
+    body:
+    BlockStmt
+      VarDecl (name: sum1)
+        BinaryExpr (op: +)
+          BinaryExpr (op: +)
+            BinaryExpr (op: +)
+              BinaryExpr (op: +)
+                IdExpr (name: a1)
+                IdExpr (name: a2)
+              IdExpr (name: a3)
+            IdExpr (name: a4)
+          IdExpr (name: a5)
+      VarDecl (name: sum2)
+        BinaryExpr (op: +)
+          BinaryExpr (op: +)
+            BinaryExpr (op: +)
+              BinaryExpr (op: +)
+                IdExpr (name: a6)
+                IdExpr (name: a7)
+              IdExpr (name: a8)
+            IdExpr (name: a9)
+          IdExpr (name: a10)
+      VarDecl (name: diff)
+        BinaryExpr (op: -)
+          IdExpr (name: sum1)
+          IdExpr (name: sum2)
+      VarDecl (name: res)
+        BinaryExpr (op: *)
+          IdExpr (name: diff)
+          UnaryExpr (op: -)
+            NumberExpr (value: 1)
+      ReturnStmt
+        CallExpr (funcName: gcd)
+          args:
+          IdExpr (name: res)
+          NumberExpr (value: 100)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: i)
+        NumberExpr (value: 1)
+      VarDecl (name: acc)
+        NumberExpr (value: 0)
+      WhileStmt
+        cond:
+        BinaryExpr (op: <=)
+          IdExpr (name: i)
+          NumberExpr (value: 10)
+        body:
+        BlockStmt
+          AssignStmt (name: acc)
+            BinaryExpr (op: +)
+              IdExpr (name: acc)
+              CallExpr (funcName: magic)
+                args:
+                NumberExpr (value: 1)
+                NumberExpr (value: 2)
+                NumberExpr (value: 3)
+                NumberExpr (value: 4)
+                NumberExpr (value: 5)
+                NumberExpr (value: 6)
+                NumberExpr (value: 7)
+                NumberExpr (value: 8)
+                NumberExpr (value: 9)
+                NumberExpr (value: 10)
+          AssignStmt (name: i)
+            BinaryExpr (op: +)
+              IdExpr (name: i)
+              NumberExpr (value: 1)
+      IfStmt
+        cond:
+        BinaryExpr (op: ==)
+          IdExpr (name: acc)
+          NumberExpr (value: 250)
+        then:
+        BlockStmt
+          ReturnStmt
+            NumberExpr (value: 0)
+      ReturnStmt
+        IdExpr (name: acc)

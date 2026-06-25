@@ -262,6 +262,10 @@ public class IrGenerator implements AST.Visitor<IR.Value> {
     // ==========================================
     @Override
     public IR.Value visit(CallExpr node) {
+        int argsCount = node.args.size();
+        if (argsCount > 8) {
+            currentFunc.maxOutArgs = Math.max(currentFunc.maxOutArgs, argsCount - 8);
+        }
         for (Expr arg : node.args) {
             IR.Value value = arg.accept(this);
             addInstr(new IR.IrInstr(IR.OpCode.PARAM, value, null));

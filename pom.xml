@@ -13,6 +13,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <antlr4.version>4.13.1</antlr4.version>
+        <skipTests>true</skipTests>
     </properties>
 
     <dependencies>
@@ -70,7 +71,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.2</version>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>${skipTests}</skipTests>
                 </configuration>
             </plugin>
             
