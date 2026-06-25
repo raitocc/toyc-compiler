@@ -5,41 +5,41 @@ main:
     addi sp, sp, -32
     sw ra, 28(sp)
     sw s0, 24(sp)
+    sw s1, 20(sp)
+    sw s2, 16(sp)
+    sw s3, 12(sp)
+    sw s4, 8(sp)
+    sw s5, 4(sp)
     addi s0, sp, 32
 
 
 entry_0:
     li t0, 0
-    sw t0, -12(s0)
+    mv s2, t0
     li t0, 0
-    sw t0, -16(s0)
+    mv s1, t0
 while_cond_1:
-    lw t0, -16(s0)
     li t1, 5
-    slt t2, t0, t1
-    sw t2, -20(s0)
-    lw t0, -20(s0)
-    beq t0, zero, while_end_3
+    slt s4, s1, t1
+    beq s4, zero, while_end_3
 while_body_2:
-    lw t0, -12(s0)
-    lw t1, -16(s0)
-    add t2, t0, t1
-    sw t2, -24(s0)
-    lw t0, -24(s0)
-    sw t0, -12(s0)
-    lw t0, -16(s0)
+    add s5, s2, s1
+    mv s2, s5
     li t1, 1
-    add t2, t0, t1
-    sw t2, -28(s0)
-    lw t0, -28(s0)
-    sw t0, -16(s0)
+    add s3, s1, t1
+    mv s1, s3
     j while_cond_1
 while_end_3:
-    lw a0, -12(s0)
+    mv a0, s2
     j main_epilogue
 main_epilogue:
-    lw ra, 28(sp)
+    lw s1, 20(sp)
+    lw s2, 16(sp)
+    lw s3, 12(sp)
+    lw s4, 8(sp)
+    lw s5, 4(sp)
     lw s0, 24(sp)
+    lw ra, 28(sp)
     addi sp, sp, 32
     ret
 

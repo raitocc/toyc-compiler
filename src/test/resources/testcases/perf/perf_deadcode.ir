@@ -1,0 +1,31 @@
+FuncDef: main()
+entry_0:
+    t0 = ASSIGN 0
+    t1 = ASSIGN 0
+while_cond_1:
+    t2 = SLT t0, 1000000
+    BEQZ t2 -> while_end_3
+while_body_2:
+    t4 = MUL 20, 30
+    t5 = DIV t4, 40
+    t6 = ADD 10, t5
+    t3 = ASSIGN t6
+    t8 = ADD t3, 5
+    t7 = ASSIGN t8
+    t10 = MUL t7, 0
+    t9 = ASSIGN t10
+    t12 = ADD t9, 1
+    t11 = ASSIGN t12
+    t13 = MUL 100, 200
+    t14 = DIV t13, 50
+    t15 = ADD t14, 400
+    t16 = SUB t15, 300
+    t17 = MUL t16, 0
+    t18 = ADD t1, t17
+    t1 = ASSIGN t18
+    t19 = ADD t0, 1
+    t0 = ASSIGN t19
+    JMP -> while_cond_1
+while_end_3:
+    RET t1
+

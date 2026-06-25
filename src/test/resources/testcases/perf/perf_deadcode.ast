@@ -1,0 +1,57 @@
+CompUnit
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: i)
+        NumberExpr (value: 0)
+      VarDecl (name: sum)
+        NumberExpr (value: 0)
+      WhileStmt
+        cond:
+        BinaryExpr (op: <)
+          IdExpr (name: i)
+          NumberExpr (value: 1000000)
+        body:
+        BlockStmt
+          VarDecl (name: a)
+            BinaryExpr (op: +)
+              NumberExpr (value: 10)
+              BinaryExpr (op: /)
+                BinaryExpr (op: *)
+                  NumberExpr (value: 20)
+                  NumberExpr (value: 30)
+                NumberExpr (value: 40)
+          VarDecl (name: b)
+            BinaryExpr (op: +)
+              IdExpr (name: a)
+              NumberExpr (value: 5)
+          VarDecl (name: c)
+            BinaryExpr (op: *)
+              IdExpr (name: b)
+              NumberExpr (value: 0)
+          VarDecl (name: d)
+            BinaryExpr (op: +)
+              IdExpr (name: c)
+              NumberExpr (value: 1)
+          AssignStmt (name: sum)
+            BinaryExpr (op: +)
+              IdExpr (name: sum)
+              BinaryExpr (op: *)
+                BinaryExpr (op: -)
+                  BinaryExpr (op: +)
+                    BinaryExpr (op: /)
+                      BinaryExpr (op: *)
+                        NumberExpr (value: 100)
+                        NumberExpr (value: 200)
+                      NumberExpr (value: 50)
+                    NumberExpr (value: 400)
+                  NumberExpr (value: 300)
+                NumberExpr (value: 0)
+          AssignStmt (name: i)
+            BinaryExpr (op: +)
+              IdExpr (name: i)
+              NumberExpr (value: 1)
+      ReturnStmt
+        IdExpr (name: sum)
