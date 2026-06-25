@@ -13,6 +13,8 @@ public class SymbolTable {
         public final String returnType;   // 函数返回类型 ("int" 或 "void")
         public final int paramCount;      // 函数形参个数
 
+        public int initValue;             // 针对全局变量的初始值 (必须在编译期计算出)
+
         // 变量符号
         public Symbol(String name) {
             this.name = name;
@@ -21,6 +23,7 @@ public class SymbolTable {
             this.isFunc = false;
             this.returnType = null;
             this.paramCount = 0;
+            this.initValue = 0;
         }
 
         // 常量符号

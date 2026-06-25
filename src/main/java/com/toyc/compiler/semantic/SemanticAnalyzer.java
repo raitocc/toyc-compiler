@@ -78,9 +78,10 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
 
     @Override
     public Void visit(VarDecl node) {
+        int initVal = 0;
         if (symTable.isGlobalScope()) {
             // 全局变量：生命周期在程序运行前，其初值必须能在编译期确定（即必须是常量表达式）
-            evalConst(node.initExpr);
+            initVal = evalConst(node.initExpr);
         } else {
             // 局部变量：初值可以是运行期的任何合法表达式，因此只需常规的 AST 语义检查
             node.initExpr.accept(this);
@@ -94,6 +95,7 @@ public class SemanticAnalyzer implements AST.Visitor<Void> {
             semError(node, "Duplicate declaration of '" + node.name + "'");
         }
         SymbolTable.Symbol varSym = new SymbolTable.Symbol(node.name);
+        varSym.initValue = initVal;
         symTable.define(node.name, varSym);
         node.resolvedSymbol = varSym;
         return null;

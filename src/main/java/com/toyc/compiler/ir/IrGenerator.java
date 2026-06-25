@@ -77,6 +77,8 @@ public class IrGenerator implements AST.Visitor<IR.Value> {
             // 这是全局变量
             IR.NameValue globalName = new IR.NameValue(node.name);
             env.put(node.resolvedSymbol, globalName);
+            int val = node.resolvedSymbol.initValue;
+            program.globalVars.add(new IR.GlobalVar(node.name, val));
             return null;
         } else {
             // 这是局部变量

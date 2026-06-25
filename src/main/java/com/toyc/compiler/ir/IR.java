@@ -152,11 +152,21 @@ public class IR {
         }
     }
 
+    public static class GlobalVar {
+        public String name;
+        public int initValue; // 全局变量的初始值必须是编译期常量
+        
+        public GlobalVar(String name, int initValue) {
+            this.name = name;
+            this.initValue = initValue;
+        }
+    }
+
     /**
      * 整个程序
      */
     public static class Program {
         public List<FuncDef> functions = new ArrayList<>();
-        // TODO: 可在此处扩充全局变量的存储结构
+        public List<GlobalVar> globalVars = new ArrayList<>();
     }
 }
