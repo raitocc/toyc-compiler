@@ -1,0 +1,35 @@
+FuncDef: main()
+entry_0:
+    t0 = ASSIGN 0
+    t1 = ASSIGN 1
+    t2 = ASSIGN 1
+    t3 = ASSIGN 0
+    t4 = ASSIGN 100000
+while_cond_1:
+    t5 = SLT t3, 100000
+    BEQZ t5 -> while_end_3
+while_body_2:
+    t7 = MUL t4, 4
+    t8 = DIV t7, t2
+    t6 = ASSIGN t8
+    t9 = SEQ t1, 1
+    BEQZ t9 -> if_else_6
+if_then_4:
+    t10 = ADD t0, t6
+    t0 = ASSIGN t10
+    t1 = ASSIGN 0
+    JMP -> if_end_5
+if_else_6:
+    t11 = SUB t0, t6
+    t0 = ASSIGN t11
+    t1 = ASSIGN 1
+    JMP -> if_end_5
+if_end_5:
+    t12 = ADD t2, 2
+    t2 = ASSIGN t12
+    t13 = ADD t3, 1
+    t3 = ASSIGN t13
+    JMP -> while_cond_1
+while_end_3:
+    RET t0
+

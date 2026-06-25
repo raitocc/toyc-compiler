@@ -1,0 +1,19 @@
+﻿
+int gcd(int a, int b) {
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+int main() {
+    int i = 0;
+    int sum = 0;
+    while (i < 1000000) {
+        sum = sum + gcd(48, 18);
+        i = i + 1;
+    }
+    return sum;
+}
+

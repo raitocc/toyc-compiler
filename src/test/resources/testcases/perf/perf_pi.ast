@@ -1,0 +1,60 @@
+CompUnit
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: pi)
+        NumberExpr (value: 0)
+      VarDecl (name: sign)
+        NumberExpr (value: 1)
+      VarDecl (name: divisor)
+        NumberExpr (value: 1)
+      VarDecl (name: i)
+        NumberExpr (value: 0)
+      VarDecl (name: scale)
+        NumberExpr (value: 100000)
+      WhileStmt
+        cond:
+        BinaryExpr (op: <)
+          IdExpr (name: i)
+          NumberExpr (value: 100000)
+        body:
+        BlockStmt
+          VarDecl (name: term)
+            BinaryExpr (op: /)
+              BinaryExpr (op: *)
+                IdExpr (name: scale)
+                NumberExpr (value: 4)
+              IdExpr (name: divisor)
+          IfStmt
+            cond:
+            BinaryExpr (op: ==)
+              IdExpr (name: sign)
+              NumberExpr (value: 1)
+            then:
+            BlockStmt
+              AssignStmt (name: pi)
+                BinaryExpr (op: +)
+                  IdExpr (name: pi)
+                  IdExpr (name: term)
+              AssignStmt (name: sign)
+                NumberExpr (value: 0)
+            else:
+            BlockStmt
+              AssignStmt (name: pi)
+                BinaryExpr (op: -)
+                  IdExpr (name: pi)
+                  IdExpr (name: term)
+              AssignStmt (name: sign)
+                NumberExpr (value: 1)
+          AssignStmt (name: divisor)
+            BinaryExpr (op: +)
+              IdExpr (name: divisor)
+              NumberExpr (value: 2)
+          AssignStmt (name: i)
+            BinaryExpr (op: +)
+              IdExpr (name: i)
+              NumberExpr (value: 1)
+      ReturnStmt
+        IdExpr (name: pi)

@@ -1,0 +1,22 @@
+FuncDef: main()
+entry_0:
+    t0 = ASSIGN 10
+    t1 = ASSIGN 0
+    t2 = ASSIGN 5
+    t1 = ASSIGN t2
+    t3 = ASSIGN 0
+    t4 = SEQ t0, 10
+    BEQZ t4 -> and_end_2
+and_right_1:
+    t5 = SEQ t1, 5
+    BEQZ t5 -> and_end_2
+    t3 = ASSIGN 1
+    JMP -> and_end_2
+and_end_2:
+    BEQZ t3 -> if_end_4
+if_then_3:
+    RET 1
+    JMP -> if_end_4
+if_end_4:
+    RET 0
+

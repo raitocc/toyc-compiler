@@ -1,0 +1,33 @@
+FuncDef: gcd(t0, t1)
+entry_0:
+while_cond_1:
+    t2 = SNE t1, 0
+    BEQZ t2 -> while_end_3
+while_body_2:
+    t3 = ASSIGN t1
+    t4 = MOD t0, t1
+    t1 = ASSIGN t4
+    t0 = ASSIGN t3
+    JMP -> while_cond_1
+while_end_3:
+    RET t0
+
+FuncDef: main()
+entry_4:
+    t5 = ASSIGN 0
+    t6 = ASSIGN 0
+while_cond_5:
+    t7 = SLT t5, 1000000
+    BEQZ t7 -> while_end_7
+while_body_6:
+    PARAM 48
+    PARAM 18
+    t8 = CALL @gcd
+    t9 = ADD t6, t8
+    t6 = ASSIGN t9
+    t10 = ADD t5, 1
+    t5 = ASSIGN t10
+    JMP -> while_cond_5
+while_end_7:
+    RET t6
+

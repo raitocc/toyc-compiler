@@ -1,0 +1,22 @@
+﻿
+int main() {
+    int pi = 0;
+    int sign = 1;
+    int divisor = 1;
+    int i = 0;
+    int scale = 100000;
+    while (i < 100000) {
+        int term = (scale * 4) / divisor;
+        if (sign == 1) {
+            pi = pi + term;
+            sign = 0;
+        } else {
+            pi = pi - term;
+            sign = 1;
+        }
+        divisor = divisor + 2;
+        i = i + 1;
+    }
+    return pi;
+}
+

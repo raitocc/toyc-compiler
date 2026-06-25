@@ -1,0 +1,44 @@
+FuncDef: ack(t0, t1)
+entry_0:
+    t2 = SEQ t0, 0
+    BEQZ t2 -> if_end_2
+if_then_1:
+    t3 = ADD t1, 1
+    RET t3
+    JMP -> if_end_2
+if_end_2:
+    t4 = ASSIGN 0
+    t5 = SGT t0, 0
+    BEQZ t5 -> and_end_4
+and_right_3:
+    t6 = SEQ t1, 0
+    BEQZ t6 -> and_end_4
+    t4 = ASSIGN 1
+    JMP -> and_end_4
+and_end_4:
+    BEQZ t4 -> if_end_6
+if_then_5:
+    t7 = SUB t0, 1
+    PARAM t7
+    PARAM 1
+    t8 = CALL @ack
+    RET t8
+    JMP -> if_end_6
+if_end_6:
+    t9 = SUB t0, 1
+    PARAM t9
+    PARAM t0
+    t10 = SUB t1, 1
+    PARAM t10
+    t11 = CALL @ack
+    PARAM t11
+    t12 = CALL @ack
+    RET t12
+
+FuncDef: main()
+entry_7:
+    PARAM 3
+    PARAM 6
+    t13 = CALL @ack
+    RET t13
+

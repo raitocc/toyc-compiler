@@ -1,0 +1,45 @@
+CompUnit
+  FuncDef (returnType: int, name: sum8)
+    params:
+    Param (name: a)
+    Param (name: b)
+    Param (name: c)
+    Param (name: d)
+    Param (name: e)
+    Param (name: f)
+    Param (name: g)
+    Param (name: h)
+    body:
+    BlockStmt
+      ReturnStmt
+        BinaryExpr (op: +)
+          BinaryExpr (op: +)
+            BinaryExpr (op: +)
+              BinaryExpr (op: +)
+                BinaryExpr (op: +)
+                  BinaryExpr (op: +)
+                    BinaryExpr (op: +)
+                      IdExpr (name: a)
+                      IdExpr (name: b)
+                    IdExpr (name: c)
+                  IdExpr (name: d)
+                IdExpr (name: e)
+              IdExpr (name: f)
+            IdExpr (name: g)
+          IdExpr (name: h)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      ReturnStmt
+        CallExpr (funcName: sum8)
+          args:
+          NumberExpr (value: 1)
+          NumberExpr (value: 2)
+          NumberExpr (value: 3)
+          NumberExpr (value: 4)
+          NumberExpr (value: 5)
+          NumberExpr (value: 6)
+          NumberExpr (value: 7)
+          NumberExpr (value: 8)
