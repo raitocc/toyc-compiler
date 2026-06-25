@@ -22,3 +22,6 @@ Thumbs.db
 *.class
 *.jar
 *.war
+
+# === Workspace ===
+HANDOFF.md
