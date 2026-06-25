@@ -55,7 +55,8 @@ public class RiscvGenerator {
      */
     private void generateFunc(IR.FuncDef func) {
         offsetMap = new HashMap<>();
-        currentOffset = 0;
+        // 给 ra 和旧的 s0 预留 8 个字节的顶部空间 (即 -4(s0) 和 -8(s0))
+        currentOffset = -8;
         currentFuncName = func.name;
         // 1. 给形参分配栈空间
         for (String param : func.params) {

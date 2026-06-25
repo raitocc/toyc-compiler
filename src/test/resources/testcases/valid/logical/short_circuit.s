@@ -17,8 +17,8 @@ entry_0:
     lw t0, 0(t0)
     li t1, 1
     add t2, t0, t1
-    sw t2, -4(s0)
-    lw t0, -4(s0)
+    sw t2, -12(s0)
+    lw t0, -12(s0)
     li a0, 1
     j increment_epilogue
 increment_epilogue:
@@ -36,40 +36,40 @@ main:
 
 entry_1:
     li t0, 0
-    sw t0, -4(s0)
+    sw t0, -12(s0)
     li t0, 0
-    sw t0, -8(s0)
-    lw t0, -4(s0)
+    sw t0, -16(s0)
+    lw t0, -12(s0)
     beq t0, zero, and_end_3
 and_right_2:
     call increment
-    sw a0, -12(s0)
-    lw t0, -12(s0)
+    sw a0, -20(s0)
+    lw t0, -20(s0)
     beq t0, zero, and_end_3
     li t0, 1
-    sw t0, -8(s0)
+    sw t0, -16(s0)
     j and_end_3
 and_end_3:
-    lw t0, -8(s0)
+    lw t0, -16(s0)
     beq t0, zero, if_end_5
 if_then_4:
     li t0, 1
     j if_end_5
 if_end_5:
     li t0, 1
-    sw t0, -16(s0)
-    lw t0, -4(s0)
+    sw t0, -24(s0)
+    lw t0, -12(s0)
     bne t0, zero, or_end_7
 or_right_6:
     call increment
-    sw a0, -20(s0)
-    lw t0, -20(s0)
+    sw a0, -28(s0)
+    lw t0, -28(s0)
     bne t0, zero, or_end_7
     li t0, 0
-    sw t0, -16(s0)
+    sw t0, -24(s0)
     j or_end_7
 or_end_7:
-    lw t0, -16(s0)
+    lw t0, -24(s0)
     beq t0, zero, if_end_9
 if_then_8:
     li t0, 2
