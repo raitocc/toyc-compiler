@@ -84,9 +84,9 @@ public class BenchmarkTest {
         System.out.println("======================================================");
         System.out.println("                 TOYC BENCHMARK RUNNER                ");
         System.out.println("======================================================");
-        System.out.printf("%-25s | %-4s | %-10s | %-10s | %-10s | %-8s%n",
-            "Test Case", "Ret", "GCC cyc", "NoOpt cyc", "IR-Opt cyc", "Opt/No");
-        System.out.println("-------------------------------------------------------------------------------");
+        System.out.printf("%-25s | %-4s | %-10s | %-10s | %-10s | %-8s | %-8s%n",
+            "Test Case", "Ret", "GCC cyc", "NoOpt cyc", "IR-Opt cyc", "Opt/No", "GCC/Opt");
+        System.out.println("------------------------------------------------------------------------------------------");
 
         try (Stream<Path> paths = Files.walk(perfDir)) {
             List<Path> cases = paths.filter(Files::isRegularFile)
@@ -135,7 +135,7 @@ public class BenchmarkTest {
                 BENCH_START_STUB +
                 toycAsmOpt + "\nEOF\n" +
                 "set -e\n" +
-                "riscv64-unknown-elf-gcc -O2 -fno-ipa-cp -fwrapv -ffreestanding -nostdlib -mno-relax -march=rv32im -mabi=ilp32 /tmp/perf_start_" + baseName + ".s /tmp/perf_" + baseName + ".c -o /tmp/perf_gcc_" + baseName + ".out\n" +
+                "riscv64-unknown-elf-gcc -O2 -ffreestanding -nostdlib -mno-relax -march=rv32im -mabi=ilp32 /tmp/perf_start_" + baseName + ".s /tmp/perf_" + baseName + ".c -o /tmp/perf_gcc_" + baseName + ".out\n" +
                 "riscv64-unknown-elf-gcc -march=rv32im -mabi=ilp32 -O0 -nostdlib -mno-relax /tmp/perf_noopt_" + baseName + ".s -o /tmp/perf_toyc_noopt_" + baseName + ".out\n" +
                 "riscv64-unknown-elf-gcc -march=rv32im -mabi=ilp32 -O0 -nostdlib -mno-relax /tmp/perf_opt_" + baseName + ".s -o /tmp/perf_toyc_opt_" + baseName + ".out\n" +
                 "run_case() {\n" +
@@ -194,10 +194,11 @@ public class BenchmarkTest {
         assertEquals(gcc.exitCode, noopt.exitCode, "ToyC NoOpt exit code differs from GCC for " + baseName);
         assertEquals(gcc.exitCode, opt.exitCode, "ToyC IR-Opt exit code differs from GCC for " + baseName);
 
-        double ratio = opt.cycles > 0 ? (double) noopt.cycles / opt.cycles : 0;
-        System.out.printf("%-25s | %-4d | %-10s | %-10s | %-10s | %-8.2f%n",
+        double optVsNoOpt = opt.cycles > 0 ? (double) noopt.cycles / opt.cycles : 0;
+        double optVsGcc = opt.cycles > 0 ? (double) gcc.cycles / opt.cycles : 0;
+        System.out.printf("%-25s | %-4d | %-10s | %-10s | %-10s | %-8.2f | %-8.2f%n",
             baseName, gcc.exitCode, formatCycles(gcc.cycles), formatCycles(noopt.cycles),
-            formatCycles(opt.cycles), ratio);
+            formatCycles(opt.cycles), optVsNoOpt, optVsGcc);
     }
 
     private String formatCycles(long cycles) {

@@ -108,11 +108,11 @@ mvn test -DskipTests=false -Dregen=true
 
 ### 性能基准测试 (Benchmark)
 位于 `testcases/perf/` 目录下的高压力数学算法测试会同时运行三种版本：
-1. **GCC -O2**：使用 `riscv64-unknown-elf-gcc -O2 -fwrapv` 作为参考基准。
+1. **GCC -O2**：使用 `riscv64-unknown-elf-gcc -O2` 作为参考基准；本地 Benchmark 仍会附加 `-ffreestanding -nostdlib -mno-relax -march=rv32im -mabi=ilp32`，用于接入自定义 `_start` 计时桩和 RV32 目标。
 2. **ToyC NoOpt**：不使用 IR 优化与寄存器分配，所有临时变量走栈。
 3. **ToyC IR-Opt**：启用 IR 优化与线性扫描寄存器分配。
 
-Benchmark 的 `_start` 桩会在同一 QEMU 进程内重复调用 `main` 三次，并通过 `rdcycle/rdcycleh` 读取 RISC-V cycle 计数；表格中的 `Opt/No` 表示 `NoOpt cyc / IR-Opt cyc`，用于观察优化后相对朴素栈式后端的加速比。
+Benchmark 的 `_start` 桩会在同一 QEMU 进程内重复调用 `main` 三次，并通过 `rdcycle/rdcycleh` 读取 RISC-V cycle 计数；表格中的 `Opt/No` 表示 `NoOpt cyc / IR-Opt cyc`，用于观察优化后相对朴素栈式后端的加速比；`GCC/Opt` 表示 `GCC cyc / IR-Opt cyc`，更接近在线评测的性能得分口径。
 
 典型测试包含：
 1. **阿克曼函数 (`perf_ackermann.tc`)**：评估海量栈帧创建与深层递归下 Prologue/Epilogue 机制的稳定性。
