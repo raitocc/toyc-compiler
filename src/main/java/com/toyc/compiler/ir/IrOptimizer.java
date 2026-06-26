@@ -86,6 +86,8 @@ public class IrOptimizer {
             changed |= eliminateDeadCode(func);
             changed |= cleanupControlFlow(func);
         } while (changed);
+
+        foldNoArgPureFunction(func, constantCallEvaluator);
     }
 
     private boolean removeNoOpAssignments(IR.FuncDef func) {
@@ -156,6 +158,42 @@ public class IrOptimizer {
             args.add(((IR.ConstValue) param.arg1).val);
         }
         return evaluator.evaluate(targetName, args);
+    }
+
+    private boolean foldNoArgPureFunction(IR.FuncDef func, ConstantCallEvaluator evaluator) {
+        if (!func.params.isEmpty() || isSingleConstantReturn(func) || containsCall(func)) {
+            return false;
+        }
+        OptionalInt value = evaluator.evaluate(func.name, List.of());
+        if (value.isEmpty()) {
+            return false;
+        }
+
+        String entryName = func.blocks.isEmpty() ? "entry_0" : func.blocks.get(0).name;
+        IR.BasicBlock entry = new IR.BasicBlock(entryName);
+        entry.instructions.add(new IR.IrInstr(IR.OpCode.RET, new IR.ConstValue(value.getAsInt()), null));
+        func.blocks = new ArrayList<>(List.of(entry));
+        func.maxOutArgs = 0;
+        return true;
+    }
+
+    private boolean containsCall(IR.FuncDef func) {
+        for (IR.BasicBlock block : func.blocks) {
+            for (IR.IrInstr instr : block.instructions) {
+                if (instr.op == IR.OpCode.CALL) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isSingleConstantReturn(IR.FuncDef func) {
+        if (func.blocks.size() != 1 || func.blocks.get(0).instructions.size() != 1) {
+            return false;
+        }
+        IR.IrInstr instr = func.blocks.get(0).instructions.get(0);
+        return instr.op == IR.OpCode.RET && instr.arg1 instanceof IR.ConstValue;
     }
 
     private boolean cleanupControlFlow(IR.FuncDef func) {
@@ -578,7 +616,7 @@ public class IrOptimizer {
     }
 
     private class ConstantCallEvaluator {
-        private static final int DEFAULT_FUEL = 5_000_000;
+        private static final int DEFAULT_FUEL = 6_000_000;
 
         private final Map<String, IR.FuncDef> functions = new HashMap<>();
         private final Set<String> pureFunctions = new HashSet<>();
@@ -624,7 +662,12 @@ public class IrOptimizer {
                 return OptionalInt.empty();
             }
 
-            OptionalInt result = execute(func, args, fuel);
+            OptionalInt result;
+            try {
+                result = execute(func, args, fuel);
+            } catch (StackOverflowError error) {
+                result = OptionalInt.empty();
+            }
             activeCalls.remove(key);
             cache.put(key, result);
             return result;
