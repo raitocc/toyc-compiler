@@ -6,8 +6,9 @@ public class IrOptimizer {
 
     public IR.Program optimize(IR.Program program) {
         propagateReadOnlyGlobals(program);
+        ConstantCallEvaluator constantCallEvaluator = new ConstantCallEvaluator(program);
         for (IR.FuncDef func : program.functions) {
-            optimizeFunc(func);
+            optimizeFunc(func, constantCallEvaluator);
         }
         return program;
     }
@@ -69,7 +70,7 @@ public class IrOptimizer {
         return value;
     }
 
-    private void optimizeFunc(IR.FuncDef func) {
+    private void optimizeFunc(IR.FuncDef func, ConstantCallEvaluator constantCallEvaluator) {
         boolean changed;
         do {
             changed = false;
@@ -79,10 +80,64 @@ public class IrOptimizer {
             for (IR.BasicBlock block : func.blocks) {
                 changed |= optimizeBlock(block);
             }
+            changed |= foldConstantCalls(func, constantCallEvaluator);
             // 2. 全局死代码消除 (Dead Code Elimination)
             changed |= eliminateDeadCode(func);
             changed |= cleanupControlFlow(func);
         } while (changed);
+    }
+
+    private boolean foldConstantCalls(IR.FuncDef func, ConstantCallEvaluator evaluator) {
+        boolean changed = false;
+        for (IR.BasicBlock block : func.blocks) {
+            List<IR.IrInstr> rewritten = new ArrayList<>();
+            List<IR.IrInstr> pendingParams = new ArrayList<>();
+
+            for (IR.IrInstr instr : block.instructions) {
+                if (instr.op == IR.OpCode.PARAM) {
+                    pendingParams.add(instr);
+                    continue;
+                }
+
+                if (instr.op == IR.OpCode.CALL && instr.arg1 instanceof IR.NameValue) {
+                    String targetName = ((IR.NameValue) instr.arg1).name;
+                    OptionalInt folded = tryFoldCall(targetName, pendingParams, evaluator);
+                    if (folded.isPresent()) {
+                        if (instr.result != null) {
+                            rewritten.add(new IR.IrInstr(IR.OpCode.ASSIGN, new IR.ConstValue(folded.getAsInt()), instr.result));
+                        }
+                        pendingParams.clear();
+                        changed = true;
+                        continue;
+                    }
+                }
+
+                if (!pendingParams.isEmpty()) {
+                    rewritten.addAll(pendingParams);
+                    pendingParams.clear();
+                }
+                rewritten.add(instr);
+            }
+
+            if (!pendingParams.isEmpty()) {
+                rewritten.addAll(pendingParams);
+            }
+            if (changed) {
+                block.instructions = rewritten;
+            }
+        }
+        return changed;
+    }
+
+    private OptionalInt tryFoldCall(String targetName, List<IR.IrInstr> pendingParams, ConstantCallEvaluator evaluator) {
+        List<Integer> args = new ArrayList<>();
+        for (IR.IrInstr param : pendingParams) {
+            if (!(param.arg1 instanceof IR.ConstValue)) {
+                return OptionalInt.empty();
+            }
+            args.add(((IR.ConstValue) param.arg1).val);
+        }
+        return evaluator.evaluate(targetName, args);
     }
 
     private boolean cleanupControlFlow(IR.FuncDef func) {
@@ -502,5 +557,227 @@ public class IrOptimizer {
 
     private boolean isConst(IR.Value val, int num) {
         return val instanceof IR.ConstValue && ((IR.ConstValue) val).val == num;
+    }
+
+    private class ConstantCallEvaluator {
+        private static final int DEFAULT_FUEL = 5_000_000;
+
+        private final Map<String, IR.FuncDef> functions = new HashMap<>();
+        private final Set<String> pureFunctions = new HashSet<>();
+        private final Map<CallKey, OptionalInt> cache = new HashMap<>();
+        private final Set<CallKey> activeCalls = new HashSet<>();
+
+        ConstantCallEvaluator(IR.Program program) {
+            for (IR.FuncDef func : program.functions) {
+                functions.put(func.name, func);
+                if (!hasDirectSideEffect(func)) {
+                    pureFunctions.add(func.name);
+                }
+            }
+            boolean changed;
+            do {
+                changed = false;
+                Iterator<String> iterator = pureFunctions.iterator();
+                while (iterator.hasNext()) {
+                    IR.FuncDef func = functions.get(iterator.next());
+                    if (callsImpureFunction(func)) {
+                        iterator.remove();
+                        changed = true;
+                    }
+                }
+            } while (changed);
+        }
+
+        OptionalInt evaluate(String funcName, List<Integer> args) {
+            return evaluate(funcName, args, new Fuel(DEFAULT_FUEL));
+        }
+
+        private OptionalInt evaluate(String funcName, List<Integer> args, Fuel fuel) {
+            IR.FuncDef func = functions.get(funcName);
+            if (func == null || !pureFunctions.contains(funcName) || func.params.size() != args.size()) {
+                return OptionalInt.empty();
+            }
+
+            CallKey key = new CallKey(funcName, List.copyOf(args));
+            if (cache.containsKey(key)) {
+                return cache.get(key);
+            }
+            if (!activeCalls.add(key)) {
+                return OptionalInt.empty();
+            }
+
+            OptionalInt result = execute(func, args, fuel);
+            activeCalls.remove(key);
+            cache.put(key, result);
+            return result;
+        }
+
+        private boolean hasDirectSideEffect(IR.FuncDef func) {
+            for (IR.BasicBlock block : func.blocks) {
+                for (IR.IrInstr instr : block.instructions) {
+                    if (instr.result instanceof IR.NameValue || instr.op == IR.OpCode.STORE || instr.op == IR.OpCode.LOAD) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private boolean callsImpureFunction(IR.FuncDef func) {
+            for (IR.BasicBlock block : func.blocks) {
+                for (IR.IrInstr instr : block.instructions) {
+                    if (instr.op == IR.OpCode.CALL) {
+                        if (!(instr.arg1 instanceof IR.NameValue)) {
+                            return true;
+                        }
+                        String targetName = ((IR.NameValue) instr.arg1).name;
+                        if (!pureFunctions.contains(targetName)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        private OptionalInt execute(IR.FuncDef func, List<Integer> args, Fuel fuel) {
+            Map<String, Integer> env = new HashMap<>();
+            for (int i = 0; i < func.params.size(); i++) {
+                env.put(func.params.get(i), args.get(i));
+            }
+
+            Map<String, IR.BasicBlock> blockMap = new HashMap<>();
+            for (IR.BasicBlock block : func.blocks) {
+                blockMap.put(block.name, block);
+            }
+
+            IR.BasicBlock block = func.blocks.isEmpty() ? null : func.blocks.get(0);
+            List<Integer> pendingParams = new ArrayList<>();
+            while (block != null) {
+                for (int ip = 0; ip < block.instructions.size(); ip++) {
+                    if (!fuel.consume()) {
+                        return OptionalInt.empty();
+                    }
+
+                    IR.IrInstr instr = block.instructions.get(ip);
+                    switch (instr.op) {
+                        case ASSIGN -> {
+                            OptionalInt value = evalValue(instr.arg1, env);
+                            if (value.isEmpty() || !(instr.result instanceof IR.TempVar)) {
+                                return OptionalInt.empty();
+                            }
+                            env.put(instr.result.toPrintString(), value.getAsInt());
+                        }
+                        case ADD, SUB, MUL, DIV, MOD, SEQ, SNE, SLT, SGT, SLE, SGE, AND, OR -> {
+                            OptionalInt left = evalValue(instr.arg1, env);
+                            OptionalInt right = evalValue(instr.arg2, env);
+                            if (left.isEmpty() || right.isEmpty() || !(instr.result instanceof IR.TempVar)) {
+                                return OptionalInt.empty();
+                            }
+                            if ((instr.op == IR.OpCode.DIV || instr.op == IR.OpCode.MOD) && right.getAsInt() == 0) {
+                                return OptionalInt.empty();
+                            }
+                            env.put(instr.result.toPrintString(), foldBinary(instr.op, left.getAsInt(), right.getAsInt()));
+                        }
+                        case NEG, NOT -> {
+                            OptionalInt value = evalValue(instr.arg1, env);
+                            if (value.isEmpty() || !(instr.result instanceof IR.TempVar)) {
+                                return OptionalInt.empty();
+                            }
+                            env.put(instr.result.toPrintString(), foldUnary(instr.op, value.getAsInt()));
+                        }
+                        case PARAM -> {
+                            OptionalInt value = evalValue(instr.arg1, env);
+                            if (value.isEmpty()) {
+                                return OptionalInt.empty();
+                            }
+                            pendingParams.add(value.getAsInt());
+                        }
+                        case CALL -> {
+                            if (!(instr.arg1 instanceof IR.NameValue) || !(instr.result instanceof IR.TempVar)) {
+                                return OptionalInt.empty();
+                            }
+                            String targetName = ((IR.NameValue) instr.arg1).name;
+                            OptionalInt value = evaluate(targetName, pendingParams, fuel);
+                            pendingParams.clear();
+                            if (value.isEmpty()) {
+                                return OptionalInt.empty();
+                            }
+                            env.put(instr.result.toPrintString(), value.getAsInt());
+                        }
+                        case BEQZ -> {
+                            OptionalInt value = evalValue(instr.arg1, env);
+                            if (value.isEmpty() || !(instr.result instanceof IR.LabelValue)) {
+                                return OptionalInt.empty();
+                            }
+                            if (value.getAsInt() == 0) {
+                                block = blockMap.get(((IR.LabelValue) instr.result).name);
+                                ip = -1;
+                            }
+                        }
+                        case BNEZ -> {
+                            OptionalInt value = evalValue(instr.arg1, env);
+                            if (value.isEmpty() || !(instr.result instanceof IR.LabelValue)) {
+                                return OptionalInt.empty();
+                            }
+                            if (value.getAsInt() != 0) {
+                                block = blockMap.get(((IR.LabelValue) instr.result).name);
+                                ip = -1;
+                            }
+                        }
+                        case JMP -> {
+                            if (!(instr.result instanceof IR.LabelValue)) {
+                                return OptionalInt.empty();
+                            }
+                            block = blockMap.get(((IR.LabelValue) instr.result).name);
+                            ip = -1;
+                        }
+                        case RET -> {
+                            if (instr.arg1 == null) {
+                                return OptionalInt.empty();
+                            }
+                            return evalValue(instr.arg1, env);
+                        }
+                        case LOAD, STORE -> {
+                            return OptionalInt.empty();
+                        }
+                    }
+                }
+
+                int index = func.blocks.indexOf(block);
+                block = index + 1 < func.blocks.size() ? func.blocks.get(index + 1) : null;
+            }
+            return OptionalInt.empty();
+        }
+
+        private OptionalInt evalValue(IR.Value value, Map<String, Integer> env) {
+            if (value instanceof IR.ConstValue) {
+                return OptionalInt.of(((IR.ConstValue) value).val);
+            }
+            if (value instanceof IR.TempVar) {
+                Integer resolved = env.get(value.toPrintString());
+                return resolved == null ? OptionalInt.empty() : OptionalInt.of(resolved);
+            }
+            return OptionalInt.empty();
+        }
+    }
+
+    private record CallKey(String funcName, List<Integer> args) {
+    }
+
+    private static class Fuel {
+        private int remaining;
+
+        Fuel(int remaining) {
+            this.remaining = remaining;
+        }
+
+        boolean consume() {
+            if (remaining <= 0) {
+                return false;
+            }
+            remaining--;
+            return true;
+        }
     }
 }
