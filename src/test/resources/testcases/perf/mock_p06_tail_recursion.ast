@@ -1,0 +1,64 @@
+CompUnit
+  VarDecl (name: DEPTH)
+    NumberExpr (value: 4000)
+  VarDecl (name: ROUNDS)
+    NumberExpr (value: 4000)
+  FuncDef (returnType: int, name: tail_rec)
+    params:
+    Param (name: n)
+    Param (name: acc)
+    body:
+    BlockStmt
+      IfStmt
+        cond:
+        BinaryExpr (op: ==)
+          IdExpr (name: n)
+          NumberExpr (value: 0)
+        then:
+        BlockStmt
+          ReturnStmt
+            IdExpr (name: acc)
+      ReturnStmt
+        CallExpr (funcName: tail_rec)
+          args:
+          BinaryExpr (op: -)
+            IdExpr (name: n)
+            NumberExpr (value: 1)
+          BinaryExpr (op: %)
+            BinaryExpr (op: +)
+              IdExpr (name: acc)
+              NumberExpr (value: 1)
+            NumberExpr (value: 251)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: i)
+        NumberExpr (value: 0)
+      VarDecl (name: sum)
+        NumberExpr (value: 0)
+      WhileStmt
+        cond:
+        BinaryExpr (op: <)
+          IdExpr (name: i)
+          IdExpr (name: ROUNDS)
+        body:
+        BlockStmt
+          AssignStmt (name: sum)
+            BinaryExpr (op: %)
+              BinaryExpr (op: +)
+                IdExpr (name: sum)
+                CallExpr (funcName: tail_rec)
+                  args:
+                  IdExpr (name: DEPTH)
+                  BinaryExpr (op: %)
+                    IdExpr (name: i)
+                    NumberExpr (value: 7)
+              NumberExpr (value: 251)
+          AssignStmt (name: i)
+            BinaryExpr (op: +)
+              IdExpr (name: i)
+              NumberExpr (value: 1)
+      ReturnStmt
+        IdExpr (name: sum)

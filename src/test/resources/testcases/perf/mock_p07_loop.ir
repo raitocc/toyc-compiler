@@ -1,0 +1,60 @@
+FuncDef: main()
+entry_0:
+    t0 = ASSIGN 0
+    t1 = ASSIGN 0
+while_cond_1:
+    t2 = SLT t0, @OUTER
+    BEQZ t2 -> while_end_3
+while_body_2:
+    t3 = ASSIGN 0
+while_cond_4:
+    t4 = SLT t3, @MID
+    BEQZ t4 -> while_end_6
+while_body_5:
+    t5 = ASSIGN 0
+while_cond_7:
+    t6 = SLT t5, @INNER
+    BEQZ t6 -> while_end_9
+while_body_8:
+    t8 = ADD t0, 1
+    t7 = ASSIGN t8
+    t10 = ADD t3, 2
+    t9 = ASSIGN t10
+    t12 = ADD t5, 3
+    t11 = ASSIGN t12
+    t14 = ADD t7, t9
+    t13 = ASSIGN t14
+    t16 = ADD t9, t11
+    t15 = ASSIGN t16
+    t18 = ADD t11, t13
+    t17 = ASSIGN t18
+    t20 = ADD t13, t15
+    t19 = ASSIGN t20
+    t22 = ADD t15, t17
+    t21 = ASSIGN t22
+    t24 = ADD t17, t19
+    t23 = ASSIGN t24
+    t26 = ADD t19, t21
+    t25 = ASSIGN t26
+    t28 = ADD t21, t23
+    t27 = ASSIGN t28
+    t30 = ADD t23, t25
+    t29 = ASSIGN t30
+    t31 = ADD t1, t27
+    t32 = ADD t31, t29
+    t33 = MOD t32, 251
+    t1 = ASSIGN t33
+    t34 = ADD t5, 1
+    t5 = ASSIGN t34
+    JMP -> while_cond_7
+while_end_9:
+    t35 = ADD t3, 1
+    t3 = ASSIGN t35
+    JMP -> while_cond_4
+while_end_6:
+    t36 = ADD t0, 1
+    t0 = ASSIGN t36
+    JMP -> while_cond_1
+while_end_3:
+    RET t1
+

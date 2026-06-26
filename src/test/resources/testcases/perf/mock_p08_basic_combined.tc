@@ -1,0 +1,19 @@
+int LIMIT = 10000000;
+
+int main() {
+    int i = 0;
+    int sum = 0;
+    while (i < LIMIT) {
+        int a = (i % 101) * 2 + 1;
+        int b = a + 0;
+        int c = b * 1;
+        int d = a * 2 + 1;
+        int e = c + d;
+        int f = e;
+        int g = f;
+        int h = g * 0;
+        sum = (sum + f + h) % 251;
+        i = i + 1;
+    }
+    return sum;
+}

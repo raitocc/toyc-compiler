@@ -1,0 +1,13 @@
+int LIMIT = 12000000;
+int BIAS = 37;
+
+int main() {
+    int i = 0;
+    int sum = 0;
+    while (i < LIMIT) {
+        int term = (i % 17) + BIAS;
+        sum = (sum + term * 3 + 11) % 251;
+        i = i + 1;
+    }
+    return sum;
+}

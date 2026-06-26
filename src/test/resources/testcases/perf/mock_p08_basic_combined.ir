@@ -1,0 +1,35 @@
+FuncDef: main()
+entry_0:
+    t0 = ASSIGN 0
+    t1 = ASSIGN 0
+while_cond_1:
+    t2 = SLT t0, @LIMIT
+    BEQZ t2 -> while_end_3
+while_body_2:
+    t4 = MOD t0, 101
+    t5 = MUL t4, 2
+    t6 = ADD t5, 1
+    t3 = ASSIGN t6
+    t8 = ADD t3, 0
+    t7 = ASSIGN t8
+    t10 = MUL t7, 1
+    t9 = ASSIGN t10
+    t12 = MUL t3, 2
+    t13 = ADD t12, 1
+    t11 = ASSIGN t13
+    t15 = ADD t9, t11
+    t14 = ASSIGN t15
+    t16 = ASSIGN t14
+    t17 = ASSIGN t16
+    t19 = MUL t17, 0
+    t18 = ASSIGN t19
+    t20 = ADD t1, t16
+    t21 = ADD t20, t18
+    t22 = MOD t21, 251
+    t1 = ASSIGN t22
+    t23 = ADD t0, 1
+    t0 = ASSIGN t23
+    JMP -> while_cond_1
+while_end_3:
+    RET t1
+

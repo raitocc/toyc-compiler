@@ -1,0 +1,37 @@
+FuncDef: tail_rec(t0, t1)
+entry_0:
+    t2 = SEQ t0, 0
+    BEQZ t2 -> if_end_2
+if_then_1:
+    RET t1
+    JMP -> if_end_2
+if_end_2:
+    t3 = SUB t0, 1
+    t4 = ADD t1, 1
+    t5 = MOD t4, 251
+    PARAM t3
+    PARAM t5
+    t6 = CALL @tail_rec
+    RET t6
+
+FuncDef: main()
+entry_3:
+    t7 = ASSIGN 0
+    t8 = ASSIGN 0
+while_cond_4:
+    t9 = SLT t7, @ROUNDS
+    BEQZ t9 -> while_end_6
+while_body_5:
+    t10 = MOD t7, 7
+    PARAM @DEPTH
+    PARAM t10
+    t11 = CALL @tail_rec
+    t12 = ADD t8, t11
+    t13 = MOD t12, 251
+    t8 = ASSIGN t13
+    t14 = ADD t7, 1
+    t7 = ASSIGN t14
+    JMP -> while_cond_4
+while_end_6:
+    RET t8
+

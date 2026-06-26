@@ -1,0 +1,33 @@
+int OUTER = 180;
+int MID = 160;
+int INNER = 100;
+
+int main() {
+    int i = 0;
+    int sum = 0;
+    while (i < OUTER) {
+        int j = 0;
+        while (j < MID) {
+            int k = 0;
+            while (k < INNER) {
+                int a1 = i + 1;
+                int a2 = j + 2;
+                int a3 = k + 3;
+                int a4 = a1 + a2;
+                int a5 = a2 + a3;
+                int a6 = a3 + a4;
+                int a7 = a4 + a5;
+                int a8 = a5 + a6;
+                int a9 = a6 + a7;
+                int a10 = a7 + a8;
+                int a11 = a8 + a9;
+                int a12 = a9 + a10;
+                sum = (sum + a11 + a12) % 251;
+                k = k + 1;
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    return sum;
+}

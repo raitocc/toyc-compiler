@@ -1,0 +1,15 @@
+int LIMIT = 8000000;
+
+int main() {
+    int i = 0;
+    int res = 0;
+    while (i < LIMIT) {
+        int base = (i % 97) + 3;
+        int a = base * 2 + 5;
+        int b = base * 2 + 5;
+        int c = (base * 2 + 5) * (base * 2 + 5);
+        res = (res + a + b + c) % 251;
+        i = i + 1;
+    }
+    return res;
+}

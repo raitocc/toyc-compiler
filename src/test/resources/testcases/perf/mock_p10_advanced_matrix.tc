@@ -1,0 +1,13 @@
+﻿int main() {
+    int i = 0;
+    int m00 = 1; int m01 = 2; int m10 = 3; int m11 = 4;
+    while (i < 10000000) {
+        int n00 = (m00 * m00 + m01 * m10) % 1000;
+        int n01 = (m00 * m01 + m01 * m11) % 1000;
+        int n10 = (m10 * m00 + m11 * m10) % 1000;
+        int n11 = (m10 * m01 + m11 * m11) % 1000;
+        m00 = n00; m01 = n01; m10 = n10; m11 = n11;
+        i = i + 1;
+    }
+    return m00;
+}

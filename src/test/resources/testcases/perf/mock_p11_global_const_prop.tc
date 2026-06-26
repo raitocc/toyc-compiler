@@ -1,0 +1,15 @@
+const int G1 = 10;
+const int G2 = 20;
+const int G3 = 30;
+int LIMIT = 10000000;
+
+int main() {
+    int i = 0;
+    int sum = 0;
+    while (i < LIMIT) {
+        int drift = i % 13;
+        sum = (sum + G1 + G2 + G3 + drift) % 251;
+        i = i + 1;
+    }
+    return sum;
+}

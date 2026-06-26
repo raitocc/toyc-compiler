@@ -1,0 +1,18 @@
+int LIMIT = 10000000;
+
+int main() {
+    int i = 0;
+    int res = 0;
+    while (i < LIMIT) {
+        int a = i * 2;
+        int b = a + 3;
+        int c = b * 4;
+        int d = c - 5;
+        int e = d / 2;
+        int f = e % 3;
+        int live = (i % 5) + 1;
+        res = (res + live) % 251;
+        i = i + 1;
+    }
+    return res;
+}

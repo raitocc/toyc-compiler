@@ -1,0 +1,55 @@
+CompUnit
+  VarDecl (name: LIMIT)
+    NumberExpr (value: 10000000)
+  FuncDef (returnType: int, name: main)
+    params:
+  []
+    body:
+    BlockStmt
+      VarDecl (name: i)
+        NumberExpr (value: 0)
+      VarDecl (name: a)
+        NumberExpr (value: 1)
+      VarDecl (name: res)
+        NumberExpr (value: 0)
+      WhileStmt
+        cond:
+        BinaryExpr (op: <)
+          IdExpr (name: i)
+          IdExpr (name: LIMIT)
+        body:
+        BlockStmt
+          VarDecl (name: b)
+            IdExpr (name: a)
+          VarDecl (name: c)
+            IdExpr (name: b)
+          VarDecl (name: d)
+            IdExpr (name: c)
+          VarDecl (name: e)
+            IdExpr (name: d)
+          VarDecl (name: f)
+            IdExpr (name: e)
+          VarDecl (name: g)
+            IdExpr (name: f)
+          VarDecl (name: h)
+            IdExpr (name: g)
+          VarDecl (name: j)
+            IdExpr (name: h)
+          AssignStmt (name: res)
+            BinaryExpr (op: %)
+              BinaryExpr (op: +)
+                IdExpr (name: res)
+                IdExpr (name: j)
+              NumberExpr (value: 251)
+          AssignStmt (name: a)
+            BinaryExpr (op: %)
+              BinaryExpr (op: +)
+                IdExpr (name: a)
+                NumberExpr (value: 3)
+              NumberExpr (value: 97)
+          AssignStmt (name: i)
+            BinaryExpr (op: +)
+              IdExpr (name: i)
+              NumberExpr (value: 1)
+      ReturnStmt
+        IdExpr (name: res)
