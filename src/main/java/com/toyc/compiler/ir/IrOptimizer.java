@@ -322,39 +322,107 @@ public class IrOptimizer {
     }
 
     private boolean eliminateDeadCode(IR.FuncDef func) {
-        boolean changed = false;
-        // 1. 统计所有用到的 TempVar 集合
-        Set<String> usedVars = new HashSet<>();
-        
-        // 我们不能消除函数参数对应的 TempVar，因为即使没被读取，也不能当做死指令来删 (虽然参数绑定没有显式 ASSIGN，但还是保留为好)
-        for (String paramName : func.params) {
-            usedVars.add(paramName);
+        Map<String, IR.BasicBlock> blockMap = new HashMap<>();
+        for (IR.BasicBlock block : func.blocks) {
+            blockMap.put(block.name, block);
         }
 
+        Map<IR.BasicBlock, Set<String>> useMap = new HashMap<>();
+        Map<IR.BasicBlock, Set<String>> defMap = new HashMap<>();
+        Map<IR.BasicBlock, Set<String>> liveIn = new HashMap<>();
+        Map<IR.BasicBlock, Set<String>> liveOut = new HashMap<>();
+
         for (IR.BasicBlock block : func.blocks) {
+            Set<String> use = new HashSet<>();
+            Set<String> def = new HashSet<>();
             for (IR.IrInstr instr : block.instructions) {
-                if (instr.arg1 instanceof IR.TempVar) usedVars.add(instr.arg1.toPrintString());
-                if (instr.arg2 instanceof IR.TempVar) usedVars.add(instr.arg2.toPrintString());
-                // RET uses arg1, which is checked above!
-            }
-        }
-
-        // 2. 扫描并删除未使用的 TempVar 的赋值指令
-        for (IR.BasicBlock block : func.blocks) {
-            Iterator<IR.IrInstr> it = block.instructions.iterator();
-            while (it.hasNext()) {
-                IR.IrInstr instr = it.next();
-                if (instr.result instanceof IR.TempVar) {
-                    String resName = instr.result.toPrintString();
-                    // 如果这个 TempVar 从未被使用，且该操作是纯赋值或算术运算（无副作用）
-                    if (!usedVars.contains(resName) && !hasSideEffect(instr.op)) {
-                        it.remove();
-                        changed = true;
+                for (String temp : getTempUses(instr)) {
+                    if (!def.contains(temp)) {
+                        use.add(temp);
                     }
                 }
+                String defined = getTempDef(instr);
+                if (defined != null && !use.contains(defined)) {
+                    def.add(defined);
+                }
+            }
+            useMap.put(block, use);
+            defMap.put(block, def);
+            liveIn.put(block, new HashSet<>());
+            liveOut.put(block, new HashSet<>());
+        }
+
+        boolean dataflowChanged;
+        do {
+            dataflowChanged = false;
+            for (int i = func.blocks.size() - 1; i >= 0; i--) {
+                IR.BasicBlock block = func.blocks.get(i);
+                Set<String> newOut = new HashSet<>();
+                for (IR.BasicBlock successor : getSuccessors(func, block, blockMap)) {
+                    newOut.addAll(liveIn.getOrDefault(successor, Set.of()));
+                }
+
+                Set<String> newIn = new HashSet<>(newOut);
+                newIn.removeAll(defMap.get(block));
+                newIn.addAll(useMap.get(block));
+
+                if (!newOut.equals(liveOut.get(block)) || !newIn.equals(liveIn.get(block))) {
+                    liveOut.put(block, newOut);
+                    liveIn.put(block, newIn);
+                    dataflowChanged = true;
+                }
+            }
+        } while (dataflowChanged);
+
+        boolean changed = false;
+        for (IR.BasicBlock block : func.blocks) {
+            Set<String> live = new HashSet<>(liveOut.get(block));
+            ListIterator<IR.IrInstr> iterator = block.instructions.listIterator(block.instructions.size());
+            while (iterator.hasPrevious()) {
+                IR.IrInstr instr = iterator.previous();
+                String defined = getTempDef(instr);
+                if (defined != null && !live.contains(defined) && !hasSideEffect(instr)) {
+                    iterator.remove();
+                    changed = true;
+                    continue;
+                }
+
+                if (defined != null) {
+                    live.remove(defined);
+                }
+                live.addAll(getTempUses(instr));
             }
         }
         return changed;
+    }
+
+    private Set<String> getTempUses(IR.IrInstr instr) {
+        Set<String> uses = new LinkedHashSet<>();
+        addTempUse(uses, instr.arg1);
+        addTempUse(uses, instr.arg2);
+        if (instr.op == IR.OpCode.STORE) {
+            addTempUse(uses, instr.result);
+        }
+        return uses;
+    }
+
+    private String getTempDef(IR.IrInstr instr) {
+        if (instr.op == IR.OpCode.STORE || instr.op == IR.OpCode.PARAM || instr.op == IR.OpCode.RET) {
+            return null;
+        }
+        if (instr.op == IR.OpCode.JMP || instr.op == IR.OpCode.BEQZ || instr.op == IR.OpCode.BNEZ) {
+            return null;
+        }
+        if (instr.result instanceof IR.TempVar) {
+            return instr.result.toPrintString();
+        }
+        return null;
+    }
+
+    private void addTempUse(Set<String> uses, IR.Value value) {
+        if (value instanceof IR.TempVar) {
+            uses.add(value.toPrintString());
+        }
     }
 
     private boolean isBinaryArithmetic(IR.OpCode op) {
@@ -367,10 +435,10 @@ public class IrOptimizer {
         return op == IR.OpCode.NEG || op == IR.OpCode.NOT;
     }
 
-    private boolean hasSideEffect(IR.OpCode op) {
-        // ASSIGN, 算术运算均无副作用；但 CALL 函数调用可能有副作用
-        // 注意：NameValue (全局变量) 的 ASSIGN 不能删除，但因为我们只剔除 TempVar 类型的 result，所以没问题
-        return op == IR.OpCode.CALL || op == IR.OpCode.LOAD || op == IR.OpCode.STORE;
+    private boolean hasSideEffect(IR.IrInstr instr) {
+        // ASSIGN、算术运算均无副作用；CALL 和显式内存写必须保留。
+        // 全局变量赋值的 result 是 NameValue，不会作为 TempVar 定义被删除。
+        return instr.op == IR.OpCode.CALL || instr.op == IR.OpCode.LOAD || instr.op == IR.OpCode.STORE;
     }
 
     private int foldBinary(IR.OpCode op, int v1, int v2) {
