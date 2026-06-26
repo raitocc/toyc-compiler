@@ -80,11 +80,29 @@ public class IrOptimizer {
             for (IR.BasicBlock block : func.blocks) {
                 changed |= optimizeBlock(block);
             }
+            changed |= removeNoOpAssignments(func);
             changed |= foldConstantCalls(func, constantCallEvaluator);
             // 2. 全局死代码消除 (Dead Code Elimination)
             changed |= eliminateDeadCode(func);
             changed |= cleanupControlFlow(func);
         } while (changed);
+    }
+
+    private boolean removeNoOpAssignments(IR.FuncDef func) {
+        boolean changed = false;
+        for (IR.BasicBlock block : func.blocks) {
+            Iterator<IR.IrInstr> iterator = block.instructions.iterator();
+            while (iterator.hasNext()) {
+                IR.IrInstr instr = iterator.next();
+                if (instr.op == IR.OpCode.ASSIGN
+                    && instr.result instanceof IR.TempVar
+                    && sameValue(instr.result, instr.arg1)) {
+                    iterator.remove();
+                    changed = true;
+                }
+            }
+        }
+        return changed;
     }
 
     private boolean foldConstantCalls(IR.FuncDef func, ConstantCallEvaluator evaluator) {
