@@ -5,85 +5,83 @@ main:
     addi sp, sp, -64
     sw ra, 60(sp)
     sw s0, 56(sp)
-    sw s1, 52(sp)
-    sw s2, 48(sp)
-    sw s3, 44(sp)
-    sw s4, 40(sp)
-    sw s5, 36(sp)
-    sw s6, 32(sp)
-    sw s7, 28(sp)
-    sw s8, 24(sp)
-    sw s9, 20(sp)
-    sw s10, 16(sp)
-    sw s11, 12(sp)
     addi s0, sp, 64
 
 
 entry_0:
     li t0, 0
-    mv s1, t0
+    sw t0, -52(s0)
     li t0, 1
-    mv s2, t0
+    sw t0, -56(s0)
     li t0, 1
-    mv s3, t0
+    sw t0, -60(s0)
     li t0, 0
-    mv s4, t0
+    sw t0, -64(s0)
     li t0, 100000
-    mv s6, t0
+    sw t0, -12(s0)
 while_cond_1:
+    lw t0, -64(s0)
     li t1, 100000
-    slt s7, s4, t1
-    beq s7, zero, while_end_3
+    slt t2, t0, t1
+    sw t2, -16(s0)
+    lw t0, -16(s0)
+    beq t0, zero, while_end_3
 while_body_2:
+    lw t0, -12(s0)
     li t1, 4
-    mul s8, s6, t1
-    div s9, s8, s3
-    mv s5, s9
+    mul t2, t0, t1
+    sw t2, -24(s0)
+    lw t0, -24(s0)
+    lw t1, -60(s0)
+    div t2, t0, t1
+    sw t2, -28(s0)
+    lw t0, -28(s0)
+    sw t0, -20(s0)
+    lw t0, -56(s0)
     li t1, 1
-    sub s10, s2, t1
-    seqz s10, s10
-    beq s10, zero, if_else_6
+    sub t2, t0, t1
+    seqz t2, t2
+    sw t2, -32(s0)
+    lw t0, -32(s0)
+    beq t0, zero, if_else_6
 if_then_4:
-    add s11, s1, s5
-    mv s1, s11
+    lw t0, -52(s0)
+    lw t1, -20(s0)
+    add t2, t0, t1
+    sw t2, -36(s0)
+    lw t0, -36(s0)
+    sw t0, -52(s0)
     li t0, 0
-    mv s2, t0
+    sw t0, -56(s0)
     j if_end_5
 if_else_6:
-    sub t2, s1, s5
-    sw t2, -60(s0)
-    lw t0, -60(s0)
-    mv s1, t0
+    lw t0, -52(s0)
+    lw t1, -20(s0)
+    sub t2, t0, t1
+    sw t2, -44(s0)
+    lw t0, -44(s0)
+    sw t0, -52(s0)
     li t0, 1
-    mv s2, t0
+    sw t0, -56(s0)
     j if_end_5
 if_end_5:
+    lw t0, -60(s0)
     li t1, 2
-    add t2, s3, t1
-    sw t2, -56(s0)
-    lw t0, -56(s0)
-    mv s3, t0
-    li t1, 1
-    add t2, s4, t1
-    sw t2, -64(s0)
+    add t2, t0, t1
+    sw t2, -40(s0)
+    lw t0, -40(s0)
+    sw t0, -60(s0)
     lw t0, -64(s0)
-    mv s4, t0
+    li t1, 1
+    add t2, t0, t1
+    sw t2, -48(s0)
+    lw t0, -48(s0)
+    sw t0, -64(s0)
     j while_cond_1
 while_end_3:
-    mv a0, s1
+    lw a0, -52(s0)
     j main_epilogue
 main_epilogue:
-    lw s1, 52(sp)
-    lw s2, 48(sp)
-    lw s3, 44(sp)
-    lw s4, 40(sp)
-    lw s5, 36(sp)
-    lw s6, 32(sp)
-    lw s7, 28(sp)
-    lw s8, 24(sp)
-    lw s9, 20(sp)
-    lw s10, 16(sp)
-    lw s11, 12(sp)
     lw s0, 56(sp)
     lw ra, 60(sp)
     addi sp, sp, 64

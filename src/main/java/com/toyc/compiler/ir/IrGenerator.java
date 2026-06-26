@@ -266,8 +266,12 @@ public class IrGenerator implements AST.Visitor<IR.Value> {
         if (argsCount > 8) {
             currentFunc.maxOutArgs = Math.max(currentFunc.maxOutArgs, argsCount - 8);
         }
+        java.util.List<IR.Value> argValues = new java.util.ArrayList<>();
         for (Expr arg : node.args) {
-            IR.Value value = arg.accept(this);
+            argValues.add(arg.accept(this));
+        }
+        // 参数表达式可能自身包含函数调用，必须先全部求值，再为当前调用发射 PARAM。
+        for (IR.Value value : argValues) {
             addInstr(new IR.IrInstr(IR.OpCode.PARAM, value, null));
         }
         IR.TempVar result = newTemp();

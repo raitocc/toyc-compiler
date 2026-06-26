@@ -5,54 +5,49 @@ sum8:
     addi sp, sp, -80
     sw ra, 76(sp)
     sw s0, 72(sp)
-    sw s1, 68(sp)
-    sw s2, 64(sp)
-    sw s3, 60(sp)
-    sw s4, 56(sp)
-    sw s5, 52(sp)
-    sw s6, 48(sp)
-    sw s7, 44(sp)
-    sw s8, 40(sp)
-    sw s9, 36(sp)
-    sw s10, 32(sp)
-    sw s11, 28(sp)
     addi s0, sp, 80
 
-    sw a0, -56(s0)
-    sw a1, -60(s0)
-    sw a2, -64(s0)
-    sw a3, -68(s0)
-    mv s1, a4
-    mv s2, a5
-    mv s3, a6
-    mv s4, a7
+    sw a0, -12(s0)
+    sw a1, -16(s0)
+    sw a2, -20(s0)
+    sw a3, -24(s0)
+    sw a4, -28(s0)
+    sw a5, -32(s0)
+    sw a6, -36(s0)
+    sw a7, -40(s0)
 
 entry_0:
+    lw t0, -12(s0)
+    lw t1, -16(s0)
+    add t2, t0, t1
+    sw t2, -44(s0)
+    lw t0, -44(s0)
+    lw t1, -20(s0)
+    add t2, t0, t1
+    sw t2, -48(s0)
+    lw t0, -48(s0)
+    lw t1, -24(s0)
+    add t2, t0, t1
+    sw t2, -52(s0)
+    lw t0, -52(s0)
+    lw t1, -28(s0)
+    add t2, t0, t1
+    sw t2, -60(s0)
+    lw t0, -60(s0)
+    lw t1, -32(s0)
+    add t2, t0, t1
+    sw t2, -56(s0)
     lw t0, -56(s0)
-    lw t1, -60(s0)
-    add s5, t0, t1
-    lw t1, -64(s0)
-    add s6, s5, t1
-    lw t1, -68(s0)
-    add s7, s6, t1
-    add s9, s7, s1
-    add s8, s9, s2
-    add s11, s8, s3
-    add s10, s11, s4
-    mv a0, s10
+    lw t1, -36(s0)
+    add t2, t0, t1
+    sw t2, -68(s0)
+    lw t0, -68(s0)
+    lw t1, -40(s0)
+    add t2, t0, t1
+    sw t2, -64(s0)
+    lw a0, -64(s0)
     j sum8_epilogue
 sum8_epilogue:
-    lw s1, 68(sp)
-    lw s2, 64(sp)
-    lw s3, 60(sp)
-    lw s4, 56(sp)
-    lw s5, 52(sp)
-    lw s6, 48(sp)
-    lw s7, 44(sp)
-    lw s8, 40(sp)
-    lw s9, 36(sp)
-    lw s10, 32(sp)
-    lw s11, 28(sp)
     lw s0, 72(sp)
     lw ra, 76(sp)
     addi sp, sp, 80
@@ -63,7 +58,6 @@ main:
     addi sp, sp, -16
     sw ra, 12(sp)
     sw s0, 8(sp)
-    sw s1, 4(sp)
     addi s0, sp, 16
 
 
@@ -85,11 +79,10 @@ entry_1:
     li t0, 8
     mv a7, t0
     call sum8
-    mv s1, a0
-    mv a0, s1
+    sw a0, -12(s0)
+    lw a0, -12(s0)
     j main_epilogue
 main_epilogue:
-    lw s1, 4(sp)
     lw s0, 8(sp)
     lw ra, 12(sp)
     addi sp, sp, 16

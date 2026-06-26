@@ -5,37 +5,36 @@ gcd:
     addi sp, sp, -32
     sw ra, 28(sp)
     sw s0, 24(sp)
-    sw s1, 20(sp)
-    sw s2, 16(sp)
-    sw s3, 12(sp)
-    sw s4, 8(sp)
-    sw s5, 4(sp)
     addi s0, sp, 32
 
-    mv s2, a0
-    mv s1, a1
+    sw a0, -12(s0)
+    sw a1, -16(s0)
 
 entry_0:
 while_cond_1:
+    lw t0, -16(s0)
     li t1, 0
-    sub s4, s1, t1
-    snez s4, s4
-    beq s4, zero, while_end_3
+    sub t2, t0, t1
+    snez t2, t2
+    sw t2, -24(s0)
+    lw t0, -24(s0)
+    beq t0, zero, while_end_3
 while_body_2:
-    mv s5, s1
-    rem s3, s2, s1
-    mv s1, s3
-    mv s2, s5
+    lw t0, -16(s0)
+    sw t0, -28(s0)
+    lw t0, -12(s0)
+    lw t1, -16(s0)
+    rem t2, t0, t1
+    sw t2, -20(s0)
+    lw t0, -20(s0)
+    sw t0, -16(s0)
+    lw t0, -28(s0)
+    sw t0, -12(s0)
     j while_cond_1
 while_end_3:
-    mv a0, s2
+    lw a0, -12(s0)
     j gcd_epilogue
 gcd_epilogue:
-    lw s1, 20(sp)
-    lw s2, 16(sp)
-    lw s3, 12(sp)
-    lw s4, 8(sp)
-    lw s5, 4(sp)
     lw s0, 24(sp)
     lw ra, 28(sp)
     addi sp, sp, 32
@@ -46,47 +45,45 @@ main:
     addi sp, sp, -32
     sw ra, 28(sp)
     sw s0, 24(sp)
-    sw s1, 20(sp)
-    sw s2, 16(sp)
-    sw s3, 12(sp)
-    sw s4, 8(sp)
-    sw s5, 4(sp)
-    sw s6, 0(sp)
     addi s0, sp, 32
 
 
 entry_4:
     li t0, 0
-    mv s1, t0
+    sw t0, -12(s0)
     li t0, 0
-    mv s2, t0
+    sw t0, -16(s0)
 while_cond_5:
+    lw t0, -12(s0)
     li t1, 1000000
-    slt s4, s1, t1
-    beq s4, zero, while_end_7
+    slt t2, t0, t1
+    sw t2, -24(s0)
+    lw t0, -24(s0)
+    beq t0, zero, while_end_7
 while_body_6:
     li t0, 48
     mv a0, t0
     li t0, 18
     mv a1, t0
     call gcd
-    mv s5, a0
-    add s6, s2, s5
-    mv s2, s6
+    sw a0, -28(s0)
+    lw t0, -16(s0)
+    lw t1, -28(s0)
+    add t2, t0, t1
+    sw t2, -32(s0)
+    lw t0, -32(s0)
+    sw t0, -16(s0)
+    lw t0, -12(s0)
     li t1, 1
-    add s3, s1, t1
-    mv s1, s3
+    add t2, t0, t1
+    sw t2, -20(s0)
+    lw t0, -20(s0)
+    sw t0, -12(s0)
     j while_cond_5
 while_end_7:
-    mv a0, s2
+    lw a0, -16(s0)
     j main_epilogue
 main_epilogue:
-    lw s1, 20(sp)
-    lw s2, 16(sp)
-    lw s3, 12(sp)
-    lw s4, 8(sp)
-    lw s5, 4(sp)
-    lw s6, 0(sp)
     lw s0, 24(sp)
     lw ra, 28(sp)
     addi sp, sp, 32

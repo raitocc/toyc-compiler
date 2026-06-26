@@ -6,8 +6,8 @@ if_then_1:
     RET t0
     JMP -> if_end_2
 if_end_2:
-    PARAM t1
     t3 = MOD t0, t1
+    PARAM t1
     PARAM t3
     t4 = CALL @gcd
     RET t4

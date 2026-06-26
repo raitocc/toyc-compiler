@@ -5,7 +5,7 @@ import java.util.*;
 
 /**
  * 极简版 RISC-V 32位 (RV32IM) 目标代码生成器
- * 升级版：贪心物理寄存器分配 (Greedy Register Allocation)
+ * 默认使用朴素栈式代码生成；开启优化时使用线性扫描物理寄存器分配。
  */
 public class RiscvGenerator {
 
@@ -19,13 +19,19 @@ public class RiscvGenerator {
     private int currentOffset; // 当前栈深 (必须是 4 的倍数)
     private int currentParamCount = 0;
     private String currentFuncName;
+    private final boolean enableRegisterAllocation;
 
     private static final String[] S_REGS = {
         "s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"
     };
 
     public RiscvGenerator() {
+        this(false);
+    }
+
+    public RiscvGenerator(boolean enableRegisterAllocation) {
         this.asm = new StringBuilder();
+        this.enableRegisterAllocation = enableRegisterAllocation;
     }
 
     public String generate(IR.Program program) {
@@ -47,38 +53,24 @@ public class RiscvGenerator {
 
     private void generateFunc(IR.FuncDef func) {
         currentFuncName = func.name;
+        currentParamCount = 0;
         
-        // 1. 频率统计 (Frequency Profiling)
-        Map<String, Integer> freqMap = new HashMap<>();
-        for (String param : func.params) freqMap.put(param, freqMap.getOrDefault(param, 0) + 1);
-        for (IR.BasicBlock block : func.blocks) {
-            for (IR.IrInstr instr : block.instructions) {
-                if (instr.arg1 instanceof IR.TempVar) {
-                    String n = instr.arg1.toPrintString(); freqMap.put(n, freqMap.getOrDefault(n, 0) + 1);
-                }
-                if (instr.arg2 instanceof IR.TempVar) {
-                    String n = instr.arg2.toPrintString(); freqMap.put(n, freqMap.getOrDefault(n, 0) + 1);
-                }
-                if (instr.result instanceof IR.TempVar) {
-                    String n = instr.result.toPrintString(); freqMap.put(n, freqMap.getOrDefault(n, 0) + 1);
-                }
-            }
+        // 1. 根据 -opt 开关决定是否启用线性扫描寄存器分配。
+        Set<String> allVars;
+        if (enableRegisterAllocation) {
+            RegisterAllocator allocator = new RegisterAllocator(func);
+            allocator.allocate();
+            regMap = allocator.regMap;
+            usedSRegs = collectUsedSRegs(regMap.values());
+            allVars = new HashSet<>(allocator.spilledVars);
+            allVars.addAll(regMap.keySet());
+        } else {
+            regMap = new HashMap<>();
+            usedSRegs = new ArrayList<>();
+            allVars = collectTempVars(func);
         }
 
-        // 2. 贪心寄存器分配 (Greedy Register Allocation)
-        List<Map.Entry<String, Integer>> sortedFreq = new ArrayList<>(freqMap.entrySet());
-        sortedFreq.sort((a, b) -> b.getValue().compareTo(a.getValue()));
-        
-        regMap = new HashMap<>();
-        usedSRegs = new ArrayList<>();
-        
-        for (int i = 0; i < sortedFreq.size() && i < S_REGS.length; i++) {
-            String varName = sortedFreq.get(i).getKey();
-            regMap.put(varName, S_REGS[i]);
-            usedSRegs.add(S_REGS[i]);
-        }
-
-        // 3. 计算 Prologue 保护头大小，并降级溢出的变量
+        // 2. 计算 Prologue 保护头大小，并为溢出变量安排栈槽
         offsetMap = new HashMap<>();
         int headerSize = 4 * (usedSRegs.size() + 2); // ra, s0, 和 usedSRegs
         currentOffset = -headerSize;
@@ -96,7 +88,7 @@ public class RiscvGenerator {
             }
         }
 
-        for (String varName : freqMap.keySet()) {
+        for (String varName : allVars) {
             if (!regMap.containsKey(varName) && !offsetMap.containsKey(varName)) {
                 currentOffset -= 4;
                 offsetMap.put(varName, currentOffset);
@@ -109,7 +101,7 @@ public class RiscvGenerator {
         int stackSize = (totalStack + 15) / 16 * 16;
         if (stackSize < 16) stackSize = 16;
 
-        // 4. 生成函数名和 Prologue
+        // 3. 生成函数名和 Prologue
         asm.append("    .globl ").append(func.name).append("\n");
         asm.append(func.name).append(":\n");
         asm.append("    addi sp, sp, -").append(stackSize).append("\n");
@@ -121,7 +113,7 @@ public class RiscvGenerator {
         }
         asm.append("    addi s0, sp, ").append(stackSize).append("\n\n");
 
-        // 5. 初始化形参：将传入的 a0-a7 转存到目标地 (寄存器或栈)；将传入的栈上参数（若被分配到寄存器）加载进来
+        // 4. 初始化形参：将传入的 a0-a7 转存到目标地；栈上传入的参数按需加载
         for (int i = 0; i < func.params.size(); i++) {
             String param = func.params.get(i);
             if (i < 8) {
@@ -141,12 +133,12 @@ public class RiscvGenerator {
         }
         asm.append("\n");
 
-        // 6. 生成基础块
+        // 5. 生成基础块
         for (IR.BasicBlock block : func.blocks) {
             generateBlock(block);
         }
         
-        // 7. 生成 Epilogue
+        // 6. 生成 Epilogue
         asm.append(func.name).append("_epilogue:\n");
         for (int i = 0; i < usedSRegs.size(); i++) {
             asm.append("    lw ").append(usedSRegs.get(i)).append(", ").append(stackSize - 12 - i * 4).append("(sp)\n");
@@ -155,6 +147,37 @@ public class RiscvGenerator {
         asm.append("    lw ra, ").append(stackSize - 4).append("(sp)\n");
         asm.append("    addi sp, sp, ").append(stackSize).append("\n");
         asm.append("    ret\n\n");
+    }
+
+    private List<String> collectUsedSRegs(Collection<String> regs) {
+        Set<String> used = new HashSet<>(regs);
+        List<String> ordered = new ArrayList<>();
+        for (String reg : S_REGS) {
+            if (used.contains(reg)) {
+                ordered.add(reg);
+            }
+        }
+        return ordered;
+    }
+
+    private Set<String> collectTempVars(IR.FuncDef func) {
+        Set<String> vars = new HashSet<>(func.params);
+        for (IR.BasicBlock block : func.blocks) {
+            for (IR.IrInstr instr : block.instructions) {
+                addTempVar(vars, instr.arg1);
+                addTempVar(vars, instr.arg2);
+                if (instr.result instanceof IR.TempVar) {
+                    vars.add(instr.result.toPrintString());
+                }
+            }
+        }
+        return vars;
+    }
+
+    private void addTempVar(Set<String> vars, IR.Value value) {
+        if (value instanceof IR.TempVar) {
+            vars.add(value.toPrintString());
+        }
     }
 
     private void generateBlock(IR.BasicBlock block) {

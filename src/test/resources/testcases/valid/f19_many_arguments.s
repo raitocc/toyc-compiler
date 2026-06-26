@@ -2,83 +2,71 @@
 
     .globl add_12
 add_12:
-    addi sp, sp, -112
-    sw ra, 108(sp)
-    sw s0, 104(sp)
-    sw s1, 100(sp)
-    sw s2, 96(sp)
-    sw s3, 92(sp)
-    sw s4, 88(sp)
-    sw s5, 84(sp)
-    sw s6, 80(sp)
-    sw s7, 76(sp)
-    sw s8, 72(sp)
-    sw s9, 68(sp)
-    sw s10, 64(sp)
-    sw s11, 60(sp)
-    addi s0, sp, 112
+    addi sp, sp, -96
+    sw ra, 92(sp)
+    sw s0, 88(sp)
+    addi s0, sp, 96
 
-    sw a0, -56(s0)
-    sw a1, -60(s0)
-    sw a2, -64(s0)
-    sw a3, -68(s0)
-    mv s1, a4
-    mv s2, a5
-    mv s3, a6
-    mv s4, a7
-    lw s5, 0(s0)
-    lw s6, 4(s0)
-    lw s7, 8(s0)
-    lw s11, 12(s0)
+    sw a0, -12(s0)
+    sw a1, -16(s0)
+    sw a2, -20(s0)
+    sw a3, -24(s0)
+    sw a4, -28(s0)
+    sw a5, -32(s0)
+    sw a6, -36(s0)
+    sw a7, -40(s0)
 
 entry_0:
-    lw t0, -56(s0)
-    lw t1, -60(s0)
-    add s10, t0, t1
-    lw t1, -64(s0)
-    add t2, s10, t1
+    lw t0, -12(s0)
+    lw t1, -16(s0)
+    add t2, t0, t1
+    sw t2, -52(s0)
+    lw t0, -52(s0)
+    lw t1, -20(s0)
+    add t2, t0, t1
+    sw t2, -64(s0)
+    lw t0, -64(s0)
+    lw t1, -24(s0)
+    add t2, t0, t1
+    sw t2, -60(s0)
+    lw t0, -60(s0)
+    lw t1, -28(s0)
+    add t2, t0, t1
+    sw t2, -72(s0)
+    lw t0, -72(s0)
+    lw t1, -32(s0)
+    add t2, t0, t1
+    sw t2, -68(s0)
+    lw t0, -68(s0)
+    lw t1, -36(s0)
+    add t2, t0, t1
     sw t2, -80(s0)
     lw t0, -80(s0)
-    lw t1, -68(s0)
+    lw t1, -40(s0)
     add t2, t0, t1
     sw t2, -76(s0)
     lw t0, -76(s0)
-    add t2, t0, s1
-    sw t2, -88(s0)
-    lw t0, -88(s0)
-    add t2, t0, s2
+    lw t1, 0(s0)
+    add t2, t0, t1
     sw t2, -84(s0)
     lw t0, -84(s0)
-    add t2, t0, s3
-    sw t2, -96(s0)
-    lw t0, -96(s0)
-    add t2, t0, s4
-    sw t2, -92(s0)
-    lw t0, -92(s0)
-    add t2, t0, s5
-    sw t2, -100(s0)
-    lw t0, -100(s0)
-    add s9, t0, s6
-    add s8, s9, s7
-    add t2, s8, s11
-    sw t2, -72(s0)
-    lw a0, -72(s0)
+    lw t1, 4(s0)
+    add t2, t0, t1
+    sw t2, -48(s0)
+    lw t0, -48(s0)
+    lw t1, 8(s0)
+    add t2, t0, t1
+    sw t2, -44(s0)
+    lw t0, -44(s0)
+    lw t1, 12(s0)
+    add t2, t0, t1
+    sw t2, -56(s0)
+    lw a0, -56(s0)
     j add_12_epilogue
 add_12_epilogue:
-    lw s1, 100(sp)
-    lw s2, 96(sp)
-    lw s3, 92(sp)
-    lw s4, 88(sp)
-    lw s5, 84(sp)
-    lw s6, 80(sp)
-    lw s7, 76(sp)
-    lw s8, 72(sp)
-    lw s9, 68(sp)
-    lw s10, 64(sp)
-    lw s11, 60(sp)
-    lw s0, 104(sp)
-    lw ra, 108(sp)
-    addi sp, sp, 112
+    lw s0, 88(sp)
+    lw ra, 92(sp)
+    addi sp, sp, 96
     ret
 
     .globl main
@@ -86,9 +74,6 @@ main:
     addi sp, sp, -48
     sw ra, 44(sp)
     sw s0, 40(sp)
-    sw s1, 36(sp)
-    sw s2, 32(sp)
-    sw s3, 28(sp)
     addi s0, sp, 48
 
 
@@ -118,23 +103,24 @@ entry_1:
     li t0, 12
     sw t0, 12(sp)
     call add_12
-    mv s3, a0
-    mv s1, s3
+    sw a0, -20(s0)
+    lw t0, -20(s0)
+    sw t0, -12(s0)
+    lw t0, -12(s0)
     li t1, 78
-    sub s2, s1, t1
-    seqz s2, s2
-    beq s2, zero, if_end_3
+    sub t2, t0, t1
+    seqz t2, t2
+    sw t2, -16(s0)
+    lw t0, -16(s0)
+    beq t0, zero, if_end_3
 if_then_2:
     li a0, 0
     j main_epilogue
     j if_end_3
 if_end_3:
-    mv a0, s1
+    lw a0, -12(s0)
     j main_epilogue
 main_epilogue:
-    lw s1, 36(sp)
-    lw s2, 32(sp)
-    lw s3, 28(sp)
     lw s0, 40(sp)
     lw ra, 44(sp)
     addi sp, sp, 48

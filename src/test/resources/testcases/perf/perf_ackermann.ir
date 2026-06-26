@@ -26,11 +26,11 @@ if_then_5:
     JMP -> if_end_6
 if_end_6:
     t9 = SUB t0, 1
-    PARAM t9
-    PARAM t0
     t10 = SUB t1, 1
+    PARAM t0
     PARAM t10
     t11 = CALL @ack
+    PARAM t9
     PARAM t11
     t12 = CALL @ack
     RET t12

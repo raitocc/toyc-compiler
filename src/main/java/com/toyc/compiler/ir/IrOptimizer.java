@@ -35,15 +35,21 @@ public class IrOptimizer {
             if (instr.arg1 instanceof IR.TempVar) {
                 String name = instr.arg1.toPrintString();
                 if (valueEnv.containsKey(name)) {
-                    instr.arg1 = valueEnv.get(name);
-                    changed = true;
+                    IR.Value replacement = valueEnv.get(name);
+                    if (!sameValue(instr.arg1, replacement)) {
+                        instr.arg1 = replacement;
+                        changed = true;
+                    }
                 }
             }
             if (instr.arg2 instanceof IR.TempVar) {
                 String name = instr.arg2.toPrintString();
                 if (valueEnv.containsKey(name)) {
-                    instr.arg2 = valueEnv.get(name);
-                    changed = true;
+                    IR.Value replacement = valueEnv.get(name);
+                    if (!sameValue(instr.arg2, replacement)) {
+                        instr.arg2 = replacement;
+                        changed = true;
+                    }
                 }
             }
             // RET now uses arg1, so it is handled above!
@@ -80,15 +86,38 @@ public class IrOptimizer {
 
             // 5. 记录 ASSIGN 指令，用于后续的常量/复写传播
             if (instr.op == IR.OpCode.ASSIGN && instr.result instanceof IR.TempVar) {
+                killValueEnv(valueEnv, instr.result.toPrintString());
                 if (instr.arg1 instanceof IR.ConstValue || instr.arg1 instanceof IR.TempVar) {
-                    valueEnv.put(instr.result.toPrintString(), instr.arg1);
+                    if (sameValue(instr.result, instr.arg1)) {
+                        valueEnv.remove(instr.result.toPrintString());
+                    } else {
+                        valueEnv.put(instr.result.toPrintString(), instr.arg1);
+                    }
                 }
             } else if (instr.result instanceof IR.TempVar) {
-                // 如果局部变量被赋予了复杂的值，清除它之前的记录
-                valueEnv.remove(instr.result.toPrintString());
+                // 如果局部变量被重新定义，依赖它的旧复写关系都必须失效。
+                killValueEnv(valueEnv, instr.result.toPrintString());
             }
         }
         return changed;
+    }
+
+    private void killValueEnv(Map<String, IR.Value> valueEnv, String definedName) {
+        valueEnv.entrySet().removeIf(entry ->
+            entry.getKey().equals(definedName)
+                || entry.getValue() instanceof IR.TempVar
+                && entry.getValue().toPrintString().equals(definedName));
+    }
+
+    private boolean sameValue(IR.Value left, IR.Value right) {
+        if (left == right) {
+            return true;
+        }
+        if (left == null || right == null) {
+            return false;
+        }
+        return left.getClass() == right.getClass()
+            && left.toPrintString().equals(right.toPrintString());
     }
 
     private boolean eliminateDeadCode(IR.FuncDef func) {

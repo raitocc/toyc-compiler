@@ -50,14 +50,14 @@ public class Main {
             com.toyc.compiler.ir.IrGenerator irGen = new com.toyc.compiler.ir.IrGenerator();
             ast.accept(irGen);
             
-            // 4. 后端 RISC-V 生成
-            com.toyc.compiler.backend.RiscvGenerator riscvGen = new com.toyc.compiler.backend.RiscvGenerator();
-            
             // 如果开启了优化参数
             if (enableOpt) {
-                System.err.println("Optimization (-opt) enabled: running IrOptimizer...");
+                System.err.println("Optimization (-opt) enabled: running IrOptimizer and register allocation...");
                 irGen.program = new com.toyc.compiler.ir.IrOptimizer().optimize(irGen.program);
             }
+
+            // 4. 后端 RISC-V 生成：-opt 开启时才启用寄存器分配
+            com.toyc.compiler.backend.RiscvGenerator riscvGen = new com.toyc.compiler.backend.RiscvGenerator(enableOpt);
             
             String asm = riscvGen.generate(irGen.program);
             
