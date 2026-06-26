@@ -15,13 +15,156 @@ public class IrOptimizer {
         boolean changed;
         do {
             changed = false;
+            // 先清理明显不可达的控制流，避免后续数据流分析被脏块干扰。
+            changed |= cleanupControlFlow(func);
             // 1. 本地常量折叠、常量传播、复写传播
             for (IR.BasicBlock block : func.blocks) {
                 changed |= optimizeBlock(block);
             }
             // 2. 全局死代码消除 (Dead Code Elimination)
             changed |= eliminateDeadCode(func);
+            changed |= cleanupControlFlow(func);
         } while (changed);
+    }
+
+    private boolean cleanupControlFlow(IR.FuncDef func) {
+        boolean changed = false;
+        Map<String, IR.BasicBlock> blockMap = new HashMap<>();
+        for (IR.BasicBlock block : func.blocks) {
+            blockMap.put(block.name, block);
+        }
+
+        for (int i = 0; i < func.blocks.size(); i++) {
+            IR.BasicBlock block = func.blocks.get(i);
+            changed |= removeInstructionsAfterTerminator(block);
+            changed |= foldConstantBranch(block);
+
+            if (!block.instructions.isEmpty()) {
+                IR.IrInstr last = block.instructions.get(block.instructions.size() - 1);
+                if (last.op == IR.OpCode.JMP && last.result instanceof IR.LabelValue) {
+                    String target = ((IR.LabelValue) last.result).name;
+                    if (i + 1 < func.blocks.size() && func.blocks.get(i + 1).name.equals(target)) {
+                        block.instructions.remove(block.instructions.size() - 1);
+                        changed = true;
+                    }
+                }
+            }
+        }
+
+        Set<String> reachable = collectReachableBlocks(func, blockMap);
+        if (func.blocks.removeIf(block -> !reachable.contains(block.name))) {
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private boolean removeInstructionsAfterTerminator(IR.BasicBlock block) {
+        for (int i = 0; i < block.instructions.size(); i++) {
+            IR.IrInstr instr = block.instructions.get(i);
+            if (instr.op == IR.OpCode.RET || instr.op == IR.OpCode.JMP) {
+                if (i + 1 < block.instructions.size()) {
+                    block.instructions = new ArrayList<>(block.instructions.subList(0, i + 1));
+                    return true;
+                }
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private boolean foldConstantBranch(IR.BasicBlock block) {
+        if (block.instructions.isEmpty()) {
+            return false;
+        }
+        IR.IrInstr last = block.instructions.get(block.instructions.size() - 1);
+        if (!(last.arg1 instanceof IR.ConstValue)) {
+            return false;
+        }
+        if (last.op == IR.OpCode.BEQZ) {
+            int value = ((IR.ConstValue) last.arg1).val;
+            if (value == 0) {
+                last.op = IR.OpCode.JMP;
+                last.arg1 = null;
+            } else {
+                block.instructions.remove(block.instructions.size() - 1);
+            }
+            return true;
+        }
+        if (last.op == IR.OpCode.BNEZ) {
+            int value = ((IR.ConstValue) last.arg1).val;
+            if (value != 0) {
+                last.op = IR.OpCode.JMP;
+                last.arg1 = null;
+            } else {
+                block.instructions.remove(block.instructions.size() - 1);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private Set<String> collectReachableBlocks(IR.FuncDef func, Map<String, IR.BasicBlock> blockMap) {
+        Set<String> reachable = new HashSet<>();
+        if (func.blocks.isEmpty()) {
+            return reachable;
+        }
+
+        Deque<IR.BasicBlock> worklist = new ArrayDeque<>();
+        worklist.add(func.blocks.get(0));
+
+        while (!worklist.isEmpty()) {
+            IR.BasicBlock block = worklist.removeFirst();
+            if (!reachable.add(block.name)) {
+                continue;
+            }
+            for (IR.BasicBlock successor : getSuccessors(func, block, blockMap)) {
+                if (!reachable.contains(successor.name)) {
+                    worklist.addLast(successor);
+                }
+            }
+        }
+        return reachable;
+    }
+
+    private List<IR.BasicBlock> getSuccessors(IR.FuncDef func, IR.BasicBlock block, Map<String, IR.BasicBlock> blockMap) {
+        List<IR.BasicBlock> successors = new ArrayList<>();
+        int index = func.blocks.indexOf(block);
+        if (block.instructions.isEmpty()) {
+            addFallthroughSuccessor(func, successors, index);
+            return successors;
+        }
+
+        IR.IrInstr last = block.instructions.get(block.instructions.size() - 1);
+        if (last.op == IR.OpCode.JMP && last.result instanceof IR.LabelValue) {
+            addLabelSuccessor(successors, blockMap, (IR.LabelValue) last.result);
+            return successors;
+        }
+        if ((last.op == IR.OpCode.BEQZ || last.op == IR.OpCode.BNEZ) && last.result instanceof IR.LabelValue) {
+            addLabelSuccessor(successors, blockMap, (IR.LabelValue) last.result);
+            addFallthroughSuccessor(func, successors, index);
+            return successors;
+        }
+        if (last.op != IR.OpCode.RET) {
+            addFallthroughSuccessor(func, successors, index);
+        }
+        return successors;
+    }
+
+    private void addLabelSuccessor(List<IR.BasicBlock> successors, Map<String, IR.BasicBlock> blockMap, IR.LabelValue label) {
+        IR.BasicBlock target = blockMap.get(label.name);
+        if (target != null && !successors.contains(target)) {
+            successors.add(target);
+        }
+    }
+
+    private void addFallthroughSuccessor(IR.FuncDef func, List<IR.BasicBlock> successors, int index) {
+        if (index + 1 < func.blocks.size()) {
+            IR.BasicBlock target = func.blocks.get(index + 1);
+            if (!successors.contains(target)) {
+                successors.add(target);
+            }
+        }
     }
 
     private boolean optimizeBlock(IR.BasicBlock block) {
