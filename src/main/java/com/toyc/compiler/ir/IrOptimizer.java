@@ -5,10 +5,68 @@ import java.util.*;
 public class IrOptimizer {
 
     public IR.Program optimize(IR.Program program) {
+        propagateReadOnlyGlobals(program);
         for (IR.FuncDef func : program.functions) {
             optimizeFunc(func);
         }
         return program;
+    }
+
+    private boolean propagateReadOnlyGlobals(IR.Program program) {
+        Map<String, Integer> globalValues = new HashMap<>();
+        for (IR.GlobalVar globalVar : program.globalVars) {
+            globalValues.put(globalVar.name, globalVar.initValue);
+        }
+        if (globalValues.isEmpty()) {
+            return false;
+        }
+
+        Set<String> writtenGlobals = new HashSet<>();
+        for (IR.FuncDef func : program.functions) {
+            for (IR.BasicBlock block : func.blocks) {
+                for (IR.IrInstr instr : block.instructions) {
+                    if (instr.result instanceof IR.NameValue) {
+                        writtenGlobals.add(((IR.NameValue) instr.result).name);
+                    }
+                }
+            }
+        }
+        for (String writtenGlobal : writtenGlobals) {
+            globalValues.remove(writtenGlobal);
+        }
+        if (globalValues.isEmpty()) {
+            return false;
+        }
+
+        boolean changed = false;
+        for (IR.FuncDef func : program.functions) {
+            for (IR.BasicBlock block : func.blocks) {
+                for (IR.IrInstr instr : block.instructions) {
+                    IR.Value newArg1 = replaceReadOnlyGlobal(instr.arg1, globalValues);
+                    if (!sameValue(instr.arg1, newArg1)) {
+                        instr.arg1 = newArg1;
+                        changed = true;
+                    }
+                    IR.Value newArg2 = replaceReadOnlyGlobal(instr.arg2, globalValues);
+                    if (!sameValue(instr.arg2, newArg2)) {
+                        instr.arg2 = newArg2;
+                        changed = true;
+                    }
+                }
+            }
+        }
+        return changed;
+    }
+
+    private IR.Value replaceReadOnlyGlobal(IR.Value value, Map<String, Integer> globalValues) {
+        if (value instanceof IR.NameValue) {
+            String name = ((IR.NameValue) value).name;
+            Integer constant = globalValues.get(name);
+            if (constant != null) {
+                return new IR.ConstValue(constant);
+            }
+        }
+        return value;
     }
 
     private void optimizeFunc(IR.FuncDef func) {
